@@ -10,3 +10,4 @@
 **/.next/
 **/playwright-report/
 **/test-results/
+**/*.tsbuildinfo
