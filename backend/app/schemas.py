@@ -1,9 +1,24 @@
 from datetime import datetime
+from typing import Literal
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
 class Creds(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
+
+class RegisterIn(Creds):
+    name: str = Field(min_length=1, max_length=150)
+
+    @field_validator("name")
+    @classmethod
+    def trim_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Name cannot be blank")
+        return value
+
+class RegistrationResult(BaseModel):
+    message: str
 
 class Token(BaseModel):
     access_token: str
@@ -18,10 +33,12 @@ class ProductIn(BaseModel):
 
 class ProductOut(ProductIn):
     model_config = ConfigDict(from_attributes=True)
-    id: int
+    pid: int
+    festival_discount_percent: int
+    festival_price: float
 
 class CartItem(BaseModel):
-    product_id: int = Field(gt=0)
+    product_pid: int = Field(gt=0)
     quantity: int = Field(gt=0)
 
 class CartReplace(BaseModel):
@@ -35,7 +52,7 @@ class CartOut(BaseModel):
     items: list[CartLineOut]
 
 class WishlistReplace(BaseModel):
-    product_ids: list[int] = Field(default_factory=list)
+    product_pids: list[int] = Field(default_factory=list)
 
 class WishlistOut(BaseModel):
     items: list[ProductOut]
@@ -69,12 +86,12 @@ class AddressIn(AddressFields):
 
 class AddressOut(AddressFields):
     model_config = ConfigDict(from_attributes=True)
-    id: int
+    address_id: int
     is_default: bool
 
 class OrderIn(BaseModel):
     items: list[CartItem] = Field(min_length=1)
-    address: AddressFields | None = None
+    address: AddressFields
 
 class OrderItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -82,13 +99,28 @@ class OrderItemOut(BaseModel):
     quantity: int
     price: float
 
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    method: str
+    status: str
+    amount: float
+
 class OrderOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: int
+    oid: int
     total: float
     status: str
     created_at: datetime
     items: list[OrderItemOut]
+    delivery_recipient_name: str | None
+    delivery_phone: str | None
+    delivery_address_line1: str | None
+    delivery_address_line2: str | None
+    delivery_city: str | None
+    delivery_region: str | None
+    delivery_postal_code: str | None
+    delivery_country: str | None
+    payment: "PaymentOut | None" = None
 
 class StatusIn(BaseModel):
-    status: str
+    status: Literal["placed", "packed", "shipped", "delivered", "cancelled"]

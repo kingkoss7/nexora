@@ -7,6 +7,5 @@ python-dotenv>=1.0
 pydantic[email]>=2
 bcrypt
 PyJWT
-redis>=5
 pytest
-httpx2
+httpx

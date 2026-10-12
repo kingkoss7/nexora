@@ -19,9 +19,9 @@ def check_pw(p: str, h: str) -> bool:
 
 def make_token(user: User) -> str:
     exp = datetime.now(timezone.utc) + timedelta(hours=12)
-    return jwt.encode({"sub": str(user.id), "exp": exp}, SECRET, algorithm="HS256")
+    return jwt.encode({"sub": str(user.uid), "exp": exp}, SECRET, algorithm="HS256")
 
-def user_id_from_token(token: str) -> int | None:
+def user_uid_from_token(token: str) -> int | None:
     try:
         return int(jwt.decode(token, SECRET, algorithms=["HS256"])["sub"])
     except (jwt.InvalidTokenError, KeyError, TypeError, ValueError):

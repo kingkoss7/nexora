@@ -1,8 +1,11 @@
 export const API = process.env.NEXT_PUBLIC_API || "http://localhost:8000";
-export type Product = { id: number; name: string; description: string; category: string; price: number; stock: number };
+export type Product = {
+  pid: number; name: string; description: string; category: string; price: number; stock: number;
+  festival_discount_percent: number; festival_price: number;
+};
 export type CartLine = { product: Product; quantity: number };
 export type SavedAddress = {
-  id: number; label: string | null; recipient_name: string; phone: string; address_line1: string;
+  address_id: number; label: string | null; recipient_name: string; phone: string; address_line1: string;
   address_line2: string | null; city: string; region: string | null; postal_code: string;
   country: string; is_default: boolean;
 };
@@ -16,6 +19,15 @@ const productPhotos: Record<string, string> = {
   laptop: "1498049794561-7780e7231661",
   headphones: "1505740420928-5e560c06d30e",
   keyboard: "1517336714731-489689fd1ca8",
+  smartwatch: "1546868871-7041f2a55e12",
+  watch: "1524592094714-0f0654e20314",
+  smartphone: "1511707171634-5f897ff02aa9",
+  phone: "1511707171634-5f897ff02aa9",
+  tablet: "1544244015-0df4b3ffc6b0",
+  camera: "1516035069371-29a1b244cc32",
+  speaker: "1608043152269-423dbba4e7e1",
+  earbuds: "1606220945770-b5b6c2c55bf1",
+  power: "1609091839311-d5365f9ff1c5",
   shoes: "1542291026-7eec264c27ff",
   jacket: "1551028719-00167b16eac5",
   coffee: "1495474472287-4d71bcdd2085",
@@ -42,14 +54,15 @@ export const saveWishlist = (items: number[]) => {
   ls()?.setItem("wishlist", JSON.stringify(items));
   if (typeof window !== "undefined") window.dispatchEvent(new Event("nexora-wishlist-change"));
 };
-export const toggleWishlist = (id: number) => {
+export const toggleWishlist = (pid: number) => {
+  if (!requireAuthentication("save favorites")) return false;
   const items = getWishlist();
-  const next = items.includes(id) ? items.filter((item) => item !== id) : [...items, id];
+  const next = items.includes(pid) ? items.filter((item) => item !== pid) : [...items, pid];
   saveWishlist(next);
-  const added = next.includes(id);
+  const added = next.includes(pid);
   if (getToken()) {
     wishlistSyncQueue = wishlistSyncQueue.catch(() => undefined).then(async () => {
-      await api(`/wishlist/${id}`, { method: added ? "PUT" : "DELETE" });
+      await api(`/wishlist/${pid}`, { method: added ? "PUT" : "DELETE" });
     }).catch((error: unknown) => {
       notify(error instanceof Error ? `Your favorites could not be saved: ${error.message}` : "Your favorites could not be saved.", "info");
     });
@@ -63,6 +76,22 @@ export const getToken = () => ls()?.getItem("token") ?? null;
 export const getRole = () => ls()?.getItem("role") ?? null;
 export const setAuth = (t: string, r: string) => { ls()?.setItem("token", t); ls()?.setItem("role", r); };
 export const logout = () => { ls()?.removeItem("token"); ls()?.removeItem("role"); };
+export function getPostLoginPath() {
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (!next) return "/";
+  const destination = new URL(next, window.location.origin);
+  return destination.origin === window.location.origin && destination.pathname !== "/login"
+    ? `${destination.pathname}${destination.search}${destination.hash}`
+    : "/";
+}
+
+function requireAuthentication(action: string) {
+  if (getToken()) return true;
+  const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  notify(`Sign in to ${action}.`, "info");
+  window.location.assign(`/login?next=${encodeURIComponent(returnTo)}`);
+  return false;
+}
 
 export async function api<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
   const token = getToken();
@@ -77,7 +106,32 @@ export async function api<T = any>(path: string, opts: RequestInit = {}): Promis
   return res.status === 204 ? (undefined as T) : res.json();
 }
 
-export const getCart = (): CartLine[] => JSON.parse(ls()?.getItem("cart") ?? "[]");
+export const getCart = (): CartLine[] => {
+  type StoredCartLine = {
+    product: Omit<Product, "pid" | "festival_discount_percent" | "festival_price"> & {
+      pid?: number;
+      id?: number;
+      festival_discount_percent?: number;
+      festival_price?: number;
+    };
+    quantity: number;
+  };
+  const stored = JSON.parse(ls()?.getItem("cart") ?? "[]") as StoredCartLine[];
+  return stored.flatMap(({ product, quantity }) => {
+    const pid = product.pid ?? product.id;
+    if (typeof pid !== "number" || !Number.isInteger(pid) || typeof quantity !== "number") return [];
+    const { id: _legacyId, ...fields } = product;
+    return [{
+      product: {
+        ...fields,
+        pid,
+        festival_discount_percent: product.festival_discount_percent ?? 20,
+        festival_price: product.festival_price ?? Math.round((product.price * 0.8 + Number.EPSILON) * 100) / 100,
+      },
+      quantity,
+    }];
+  });
+};
 export const saveCart = (c: CartLine[]) => {
   ls()?.setItem("cart", JSON.stringify(c));
   if (typeof window !== "undefined") window.dispatchEvent(new Event("nexora-cart-change"));
@@ -89,7 +143,7 @@ export function persistCart(c: CartLine[]) {
   cartSyncQueue = cartSyncQueue.catch(() => undefined).then(async () => {
     await api("/cart", {
       method: "PUT",
-      body: JSON.stringify({ items: c.map((line) => ({ product_id: line.product.id, quantity: line.quantity })) }),
+      body: JSON.stringify({ items: c.map((line) => ({ product_pid: line.product.pid, quantity: line.quantity })) }),
     });
   }).catch((error: unknown) => {
     notify(error instanceof Error ? `Your bag could not be saved: ${error.message}` : "Your bag could not be saved.", "info");
@@ -100,19 +154,19 @@ export async function syncCartFromServer(): Promise<CartLine[]> {
   const remote = await api<{ items: CartLine[] }>("/cart");
   const merged = new Map<number, CartLine>();
   for (const line of [...remote.items, ...getCart()]) {
-    const existing = merged.get(line.product.id);
-    merged.set(line.product.id, {
+    const existing = merged.get(line.product.pid);
+    merged.set(line.product.pid, {
       product: line.product,
       quantity: Math.min(line.product.stock, (existing?.quantity ?? 0) + line.quantity),
     });
   }
   const result = [...merged.values()].filter((line) => line.quantity > 0);
   saveCart(result);
-  if (result.some((line) => !remote.items.some((saved) => saved.product.id === line.product.id && saved.quantity === line.quantity))
-      || remote.items.some((line) => !result.some((saved) => saved.product.id === line.product.id))) {
+  if (result.some((line) => !remote.items.some((saved) => saved.product.pid === line.product.pid && saved.quantity === line.quantity))
+      || remote.items.some((line) => !result.some((saved) => saved.product.pid === line.product.pid))) {
     await api("/cart", {
       method: "PUT",
-      body: JSON.stringify({ items: result.map((line) => ({ product_id: line.product.id, quantity: line.quantity })) }),
+      body: JSON.stringify({ items: result.map((line) => ({ product_pid: line.product.pid, quantity: line.quantity })) }),
     });
   }
   return result;
@@ -121,10 +175,10 @@ let wishlistSyncQueue: Promise<void> = Promise.resolve();
 export async function syncWishlistFromServer(): Promise<number[]> {
   if (!getToken()) return getWishlist();
   const remote = await api<{ items: Product[] }>("/wishlist");
-  const ids = [...new Set([...remote.items.map((item) => item.id), ...getWishlist()])];
+  const ids = [...new Set([...remote.items.map((item) => item.pid), ...getWishlist()])];
   saveWishlist(ids);
   if (ids.length !== remote.items.length) {
-    await api("/wishlist", { method: "PUT", body: JSON.stringify({ product_ids: ids }) });
+    await api("/wishlist", { method: "PUT", body: JSON.stringify({ product_pids: ids }) });
   }
   return ids;
 }
@@ -132,13 +186,11 @@ export async function getSavedAddresses(): Promise<SavedAddress[]> {
   if (!getToken()) return [];
   return api<SavedAddress[]>("/addresses");
 }
-export type CartFlyDetail = { image: string; from: DOMRect };
-export function addToCart(p: Product, quantity = 1, fly?: CartFlyDetail) {
-  const c = getCart(); const l = c.find((x) => x.product.id === p.id);
+export function addToCart(p: Product, quantity = 1) {
+  if (!requireAuthentication("add items to your bag")) return false;
+  const c = getCart(); const l = c.find((x) => x.product.pid === p.pid);
   if (l) l.quantity = Math.min(l.quantity + quantity, p.stock); else c.push({ product: p, quantity: Math.min(quantity, p.stock) });
   persistCart(c.filter((line) => line.quantity > 0));
-  if (typeof window !== "undefined" && fly) {
-    window.dispatchEvent(new CustomEvent("nexora-cart-fly", { detail: fly }));
-  }
   notify("Added to cart");
+  return true;
 }

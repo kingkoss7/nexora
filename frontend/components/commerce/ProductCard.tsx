@@ -2,9 +2,9 @@
 
 import { Check, Eye, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { addToCart, Product, productImage, toggleWishlist } from "@/lib/api";
-import { enrich, formatMoney } from "@/lib/catalog";
+import { festivalPrice, formatMoney } from "@/lib/catalog";
 import WishlistButton from "@/components/ui/WishlistButton";
 
 export default function ProductCard({
@@ -12,43 +12,42 @@ export default function ProductCard({
 }: {
   product: Product; index: number; saved: boolean; onWishlist: () => void; onQuick: () => void;
 }) {
-  const view = enrich(product);
   const [added, setAdded] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
   return (
-    <article className="product-card group" style={{ animationDelay: `${index * 60}ms` }}>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] bg-[#101010]">
-        <Link href={`/products/${product.id}`} aria-label={`View ${product.name}`} className="absolute inset-0 z-[1]" />
-        <img ref={imgRef} className="product-image h-full w-full object-cover" loading={index > 3 ? "lazy" : "eager"} src={productImage(product)} alt={product.name} />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70" />
-        <span className="absolute left-3 top-3 z-[2] rounded-full border border-white/10 bg-black/50 px-2.5 py-1 text-[10px] font-semibold capitalize tracking-wide backdrop-blur">{view.brand}</span>
-        {view.discount > 0 && <span className="absolute left-3 top-11 z-[2] rounded-full bg-accent/15 px-2 py-1 text-[10px] font-bold text-accent">-{view.discount}%</span>}
-        <div className="absolute right-3 top-3 z-[2]"><WishlistButton saved={saved} onToggle={() => { toggleWishlist(product.id); onWishlist(); }} /></div>
-        <div className="absolute inset-x-3 bottom-3 z-[2] flex translate-y-2 gap-2 opacity-0 transition duration-320 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
-          <button onClick={onQuick} className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-black/55 py-2.5 text-[11px] font-semibold backdrop-blur"><Eye size={13} /> Quick View</button>
+    <article className="product-card group flex h-full flex-col">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-[#111720]">
+        <Link href={`/products/${product.pid}`} aria-label={`View ${product.name}`} className="absolute inset-0 z-[1]" />
+        <img className="product-image h-full w-full object-cover" loading={index > 3 ? "lazy" : "eager"} src={productImage(product)} alt={product.name} />
+        <span className="absolute left-3 top-3 z-[2] rounded-md border border-[#2583ff]/25 bg-[#0b0f14]/90 px-2.5 py-1.5 text-[10px] font-semibold text-[#72adff]">{product.festival_discount_percent}% festival offer</span>
+        {product.stock <= 0 && <span className="absolute bottom-14 left-3 z-[2] rounded-md border border-[#283444] bg-[#0b0f14]/90 px-2.5 py-1.5 text-[10px] font-semibold text-[#c3ccda]">Out of stock</span>}
+        <div className="absolute right-3 top-3 z-[2]"><WishlistButton saved={saved} onToggle={() => { toggleWishlist(product.pid); onWishlist(); }} /></div>
+        <div className="absolute inset-x-3 bottom-3 z-[2] flex gap-2">
+          <button type="button" onClick={onQuick} aria-label={`Quick view ${product.name}`} className="grid size-10 shrink-0 place-items-center rounded-lg border border-[#283444] bg-[#0b0f14]/90 text-white hover:border-accent" title="Quick view"><Eye size={15} /></button>
           <button
+            type="button"
             disabled={!product.stock}
             onClick={() => {
-              const from = imgRef.current?.getBoundingClientRect();
-              addToCart(product, 1, from ? { image: productImage(product), from } : undefined);
+              if (!addToCart(product)) return;
               setAdded(true);
               window.setTimeout(() => setAdded(false), 1400);
             }}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-accent py-2.5 text-[11px] font-bold text-[#04140c] disabled:opacity-40"
+            className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2.5 text-xs font-bold text-white hover:bg-[#4697ff] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {added ? <><Check size={13} /> Added</> : <><ShoppingBag size={13} /> Add to Cart</>}
           </button>
         </div>
       </div>
-      <div className="px-1.5 pb-2 pt-4">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted">{product.category}</p>
+      <div className="flex flex-1 flex-col px-1 pb-1 pt-3">
+        <p className="text-[10px] uppercase tracking-[0.12em] text-muted">{product.category}</p>
         <div className="mt-1 flex items-start justify-between gap-2">
-          <Link href={`/products/${product.id}`} className="line-clamp-1 font-display text-[15px] font-semibold">{product.name}</Link>
-          <span className="text-[11px] text-[#cfcfcf]">★ {view.rating}</span>
+          <Link href={`/products/${product.pid}`} className="line-clamp-2 min-h-10 font-display text-sm font-semibold text-[#e5eaf2] hover:text-white">{product.name}</Link>
         </div>
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-base font-bold text-accent">{formatMoney(product.price)}</span>
-          <span className="text-[11px] text-muted line-through">{formatMoney(view.originalPrice)}</span>
+        <div className="mt-auto flex items-baseline justify-between gap-2 pt-3">
+          <span className="flex flex-wrap items-baseline gap-2">
+            <span className="font-display text-lg font-bold tracking-tight text-white">{formatMoney(festivalPrice(product))}</span>
+            <span className="text-xs text-muted line-through">{formatMoney(product.price)}</span>
+          </span>
+          <span className={`text-[10px] ${product.stock > 0 ? "text-[#36c98f]" : "text-[#f16c78]"}`}>{product.stock > 0 ? `${product.stock} available` : "Sold out"}</span>
         </div>
       </div>
     </article>

@@ -13,19 +13,22 @@ Base.metadata.create_all(engine)
 def test_persistent_customer_commerce():
     with TestClient(app) as client:
         email = f"{uuid.uuid4().hex}@example.com"
-        assert client.post("/auth/register", json={"email": email, "password": "secret1"}).status_code == 201
+        assert client.post("/auth/register", json={"name": "Customer", "email": email, "password": "secret1"}).status_code == 201
         token = client.post("/auth/login", json={"email": email, "password": "secret1"}).json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         products = client.get("/products", params={"size": 100}).json()
-        product_id = max(products, key=lambda item: item["stock"])["id"]
+        product_id = max(products, key=lambda item: item["stock"])["pid"]
+        product = next(item for item in products if item["pid"] == product_id)
+        assert product["festival_discount_percent"] == 20
+        assert product["festival_price"] == round(product["price"] * 0.8, 2)
 
         assert client.get("/cart", headers=headers).json() == {"items": []}
-        assert client.put("/cart", json={"items": [{"product_id": product_id, "quantity": 2}]}, headers=headers).status_code == 200
+        assert client.put("/cart", json={"items": [{"product_pid": product_id, "quantity": 2}]}, headers=headers).status_code == 200
         assert client.get("/cart", headers=headers).json()["items"][0]["quantity"] == 2
         assert client.put("/cart", json={"items": []}, headers=headers).json() == {"items": []}
 
         assert client.put(f"/wishlist/{product_id}", headers=headers).status_code == 204
-        assert client.get("/wishlist", headers=headers).json()["items"][0]["id"] == product_id
+        assert client.get("/wishlist", headers=headers).json()["items"][0]["pid"] == product_id
         assert client.delete(f"/wishlist/{product_id}", headers=headers).status_code == 204
 
         address = {
@@ -41,16 +44,23 @@ def test_persistent_customer_commerce():
         created_address = client.post("/addresses", json=address, headers=headers)
         assert created_address.status_code == 201
         assert created_address.json()["country"] == "US"
+        assert "address_id" in created_address.json()
 
         order = client.post(
             "/orders",
-            json={"items": [{"product_id": product_id, "quantity": 1}], "address": address},
+            json={"items": [{"product_pid": product_id, "quantity": 1}], "address": address},
             headers=headers,
         )
         assert order.status_code == 201
+        expected_total = round(product["festival_price"] + (7.95 if product["festival_price"] < 100 else 0), 2)
+        assert order.json()["total"] == expected_total
+        assert order.json()["items"][0]["price"] == product["festival_price"]
         with SessionLocal() as db:
-            snapshot = db.scalar(select(m.OrderAddress).where(m.OrderAddress.order_id == order.json()["id"]))
-            assert snapshot is not None
-            assert snapshot.address_line1 == "1 Test Street"
+            saved_order = db.scalar(select(m.Order).where(m.Order.oid == order.json()["oid"]))
+            assert saved_order is not None
+            assert saved_order.delivery_address_line1 == "1 Test Street"
+            assert saved_order.payment is not None
+            assert saved_order.payment.method == "cash_on_delivery"
+            assert saved_order.payment.status == "pending"
 
-        assert client.delete(f"/addresses/{created_address.json()['id']}", headers=headers).status_code == 204
+        assert client.delete(f"/addresses/{created_address.json()['address_id']}", headers=headers).status_code == 204

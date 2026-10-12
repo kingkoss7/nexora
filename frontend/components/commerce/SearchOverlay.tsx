@@ -1,33 +1,53 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api, Product, productImage } from "@/lib/api";
-import { formatMoney } from "@/lib/catalog";
+import { festivalPrice, formatMoney } from "@/lib/catalog";
 
-const popular = ["Electronics", "Gaming", "Fashion", "Accessories"];
-const defaults = ["Wireless headphones", "Gaming keyboard", "Smart watch"];
-
-export default function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [query, setQuery] = useState("");
+export default function SearchOverlay({ open, initialQuery = "", onClose }: { open: boolean; initialQuery?: string; onClose: () => void }) {
+  const [query, setQuery] = useState(initialQuery);
   const [items, setItems] = useState<Product[]>([]);
-  const [recent, setRecent] = useState<string[]>(defaults);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [recent, setRecent] = useState<string[]>([]);
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    try { setRecent(JSON.parse(localStorage.getItem("nexora-recent") ?? "null") ?? defaults); } catch { setActive(0); }
+    try {
+      const stored: unknown = JSON.parse(localStorage.getItem("nexora-recent") ?? "[]");
+      setRecent(Array.isArray(stored) && stored.every((item) => typeof item === "string") ? stored : []);
+    } catch {
+      setRecent([]);
+    }
   }, []);
 
   useEffect(() => {
     if (!open) return;
+    setQuery(initialQuery);
+  }, [open, initialQuery]);
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    setLoading(true);
+    setItems([]);
+    setError("");
     const t = window.setTimeout(() => {
       const params = new URLSearchParams({ size: "8" });
       if (query.trim()) params.set("q", query.trim());
-      api<Product[]>(`/products?${params}`).then(setItems).catch(() => setItems([]));
+      api<Product[]>(`/products?${params}`)
+        .then((products) => { if (active) setItems(products); })
+        .catch((err: unknown) => {
+          if (active) {
+            setItems([]);
+            setError(err instanceof Error ? err.message : "Search is unavailable.");
+          }
+        })
+        .finally(() => { if (active) setLoading(false); });
     }, 120);
-    return () => window.clearTimeout(t);
+    return () => { active = false; window.clearTimeout(t); };
   }, [open, query]);
 
   useEffect(() => {
@@ -38,7 +58,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
       if (event.key === "ArrowUp") { event.preventDefault(); setActive((v) => Math.max(0, v - 1)); }
       if (event.key === "Enter" && items[active]) {
         remember(query || items[active].name);
-        window.location.href = `/products/${items[active].id}`;
+        window.location.href = `/products/${items[active].pid}`;
       }
     };
     window.addEventListener("keydown", onKey);
@@ -54,19 +74,15 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
   const results = useMemo(() => items, [items]);
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
         <>
-          <motion.button aria-label="Close search" className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
-          <motion.div
+          <button aria-label="Close search" className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={onClose} />
+          <div
             role="dialog"
             aria-modal="true"
             aria-label="Search products"
-            className="fixed inset-x-0 top-0 z-[62] mx-auto mt-16 w-[min(720px,calc(100vw-1.5rem))] overflow-hidden rounded-3xl border border-white/10 bg-[#101010] shadow-panel"
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
+            className="fixed inset-x-0 top-0 z-[62] mx-auto mt-16 w-[min(720px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-[#283444] bg-[#111720] shadow-panel"
           >
             <div className="flex items-center gap-3 border-b border-white/8 px-5 py-4">
               <Search size={18} className="text-accent" />
@@ -74,25 +90,25 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
                 autoFocus
                 value={query}
                 onChange={(event) => { setQuery(event.target.value); setActive(0); }}
-                placeholder="Search products, collections, categories…"
+                placeholder="Search products"
                 className="h-11 flex-1 bg-transparent text-sm outline-none placeholder:text-[#666]"
               />
               <button onClick={onClose} aria-label="Close search" className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/8"><X size={15} /></button>
             </div>
             <div className="grid gap-6 p-5 md:grid-cols-[180px_1fr]">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Recent</p>
-                <div className="mt-3 space-y-1">{recent.map((item) => <button key={item} onClick={() => setQuery(item)} className="block w-full rounded-lg px-2 py-1.5 text-left text-xs text-[#cfcfcf] hover:bg-white/5 hover:text-white">{item}</button>)}</div>
-                <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Popular</p>
-                <div className="mt-3 flex flex-wrap gap-2">{popular.map((item) => <button key={item} onClick={() => setQuery(item)} className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] hover:border-accent/40">{item}</button>)}</div>
+                {recent.length > 0 && <>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Recent searches</p>
+                  <div className="mt-3 space-y-1">{recent.map((item) => <button key={item} onClick={() => setQuery(item)} className="block w-full rounded-lg px-2 py-1.5 text-left text-xs text-[#cfcfcf] hover:bg-white/5 hover:text-white">{item}</button>)}</div>
+                </>}
               </div>
-              <div>
+              <div className={recent.length ? "" : "md:col-span-2"}>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Live results</p>
                 <div className="mt-3 space-y-1">
                   {results.map((product, index) => (
                     <Link
-                      key={product.id}
-                      href={`/products/${product.id}`}
+                      key={product.pid}
+                      href={`/products/${product.pid}`}
                       onClick={() => { remember(query || product.name); onClose(); }}
                       className={`flex items-center gap-3 rounded-xl px-2 py-2 ${index === active ? "bg-accent/10" : "hover:bg-white/5"}`}
                     >
@@ -101,17 +117,19 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
                         <p className="truncate text-sm font-medium">{product.name}</p>
                         <p className="text-[10px] capitalize text-muted">{product.category}</p>
                       </div>
-                      <span className="text-xs font-semibold text-accent">{formatMoney(product.price)}</span>
+                      <span className="text-xs font-semibold text-accent">{formatMoney(festivalPrice(product))}</span>
                       <ArrowUpRight size={14} className="text-muted" />
                     </Link>
                   ))}
-                  {!results.length && <p className="py-8 text-center text-xs text-muted">No matches yet.</p>}
+                  {loading && <p className="py-8 text-center text-xs text-muted">Searching products…</p>}
+                  {error && <p role="alert" className="py-8 text-center text-xs text-[#f16c78]">{error}</p>}
+                  {!loading && !error && !results.length && <p className="py-8 text-center text-xs text-muted">No matches yet.</p>}
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

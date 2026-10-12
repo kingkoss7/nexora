@@ -1,11 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CartLine, getCart, notify, persistCart, productImage } from "@/lib/api";
-import { formatMoney } from "@/lib/catalog";
+import { festivalPrice, formatMoney } from "@/lib/catalog";
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -31,30 +30,24 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
     persistCart(next);
     notify("Order updated");
   };
-  const subtotal = cart.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+  const subtotal = cart.reduce((sum, line) => sum + festivalPrice(line.product) * line.quantity, 0);
+  const savings = cart.reduce((sum, line) => sum + (line.product.price - festivalPrice(line.product)) * line.quantity, 0);
   const shipping = subtotal >= 100 || !subtotal ? 0 : 7.95;
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
         <>
-          <motion.button
+          <button
             aria-label="Close cart"
             className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          <motion.aside
+          <aside
             role="dialog"
             aria-modal="true"
             aria-label="Shopping cart"
             className="fixed right-0 top-0 z-[61] flex h-full w-full max-w-[420px] flex-col border-l border-white/10 bg-[#0d0d0d]"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
               <div>
@@ -74,12 +67,9 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {cart.map((line, index) => (
-                    <motion.article
-                      key={line.product.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
+                  {cart.map((line) => (
+                    <article
+                      key={line.product.pid}
                       className="flex gap-3 rounded-2xl border border-white/8 bg-[#141414] p-3"
                     >
                       <img src={productImage(line.product)} alt="" className="h-20 w-20 rounded-xl object-cover" />
@@ -88,15 +78,18 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                         <p className="mt-0.5 text-[10px] capitalize text-muted">{line.product.category} · Graphite</p>
                         <div className="mt-2 flex items-center justify-between">
                           <div className="flex items-center gap-2 rounded-full border border-white/10 px-2 py-1">
-                            <button aria-label="Decrease" onClick={() => update(cart.map((item) => item.product.id === line.product.id ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))}><Minus size={12} /></button>
+                            <button aria-label="Decrease" onClick={() => update(cart.map((item) => item.product.pid === line.product.pid ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))}><Minus size={12} /></button>
                             <span className="w-4 text-center text-xs">{line.quantity}</span>
-                            <button aria-label="Increase" onClick={() => update(cart.map((item) => item.product.id === line.product.id ? { ...item, quantity: Math.min(item.product.stock, item.quantity + 1) } : item))}><Plus size={12} /></button>
+                            <button aria-label="Increase" onClick={() => update(cart.map((item) => item.product.pid === line.product.pid ? { ...item, quantity: Math.min(item.product.stock, item.quantity + 1) } : item))}><Plus size={12} /></button>
                           </div>
-                          <span className="text-sm font-bold text-accent">{formatMoney(line.product.price * line.quantity)}</span>
+                          <span className="text-right">
+                            <span className="block text-sm font-bold text-accent">{formatMoney(festivalPrice(line.product) * line.quantity)}</span>
+                            <span className="block text-[10px] text-muted line-through">{formatMoney(line.product.price * line.quantity)}</span>
+                          </span>
                         </div>
                       </div>
-                      <button aria-label={`Remove ${line.product.name}`} onClick={() => update(cart.filter((item) => item.product.id !== line.product.id))} className="self-start text-muted hover:text-white"><Trash2 size={14} /></button>
-                    </motion.article>
+                      <button aria-label={`Remove ${line.product.name}`} onClick={() => update(cart.filter((item) => item.product.pid !== line.product.pid))} className="self-start text-muted hover:text-white"><Trash2 size={14} /></button>
+                    </article>
                   ))}
                 </div>
               )}
@@ -105,6 +98,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
               <div className="border-t border-white/8 px-5 py-5">
                 <div className="space-y-2 text-xs text-muted">
                   <div className="flex justify-between"><span>Subtotal</span><span className="text-white">{formatMoney(subtotal)}</span></div>
+                  <div className="flex justify-between text-[#36c98f]"><span>Festival savings</span><span>−{formatMoney(savings)}</span></div>
                   <div className="flex justify-between"><span>Shipping</span><span>{shipping ? formatMoney(shipping) : "Complimentary"}</span></div>
                   <div className="flex justify-between border-t border-white/8 pt-3 text-sm font-bold text-white"><span>Total</span><span className="text-accent">{formatMoney(subtotal + shipping)}</span></div>
                 </div>
@@ -112,9 +106,9 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                 <Link href="/cart" onClick={onClose} className="mt-3 block text-center text-[11px] text-muted hover:text-white">View full bag</Link>
               </div>
             )}
-          </motion.aside>
+          </aside>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

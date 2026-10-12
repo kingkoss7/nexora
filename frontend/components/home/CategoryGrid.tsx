@@ -2,30 +2,48 @@
 
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { api, notify } from "@/lib/api";
 import { editorialCategories } from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
 
 export default function CategoryGrid() {
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    api<string[]>("/categories").then(setCategories).catch((error: unknown) => {
+      notify(error instanceof Error ? error.message : "Categories could not be loaded.", "info");
+    });
+  }, []);
+
   return (
-    <section id="categories" className="mx-auto max-w-[1440px] scroll-mt-24 px-5 py-20 sm:px-8 lg:px-12">
+    <section id="categories" className="page-frame mx-auto max-w-[1440px] scroll-mt-24 px-4 py-14 sm:px-6 lg:px-10">
       <Reveal>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">Worlds</p>
-        <h2 className="font-display mt-3 text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Editorial categories</h2>
+        <p className="eyebrow">Find your world</p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          <h2 className="display-heading max-w-[12ch] text-4xl sm:text-5xl">Shop by category.</h2>
+          <p className="max-w-xs text-sm leading-6 text-[#9aa8ba]">Browse the categories available in the NEXORA marketplace.</p>
+        </div>
       </Reveal>
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {editorialCategories.map((category, index) => (
-          <Reveal key={category.slug} delay={index * 0.06}>
-            <Link href={`/shop?category=${category.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-[24px]">
-              <img src={category.image} alt={category.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-black/35 transition group-hover:bg-black/50" />
-              <span className="absolute left-6 top-6 h-px w-8 bg-accent transition-all duration-320 group-hover:w-16" />
-              <div className="absolute inset-x-6 bottom-6 flex items-end justify-between">
-                <h3 className="font-display text-2xl font-bold transition duration-320 group-hover:-translate-y-1">{category.name}</h3>
-                <ArrowUpRight className="translate-y-2 text-accent opacity-0 transition duration-320 group-hover:translate-y-0 group-hover:opacity-100" size={22} />
-              </div>
-            </Link>
-          </Reveal>
-        ))}
+      <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {categories.map((category, index) => {
+          const image = editorialCategories.find((item) => item.slug === category.toLowerCase())?.image ?? editorialCategories[0].image;
+          return (
+            <Reveal key={category} delay={index * 0.06}>
+              <Link href={`/shop?category=${encodeURIComponent(category)}`} className="group relative block aspect-[1.5/1] overflow-hidden rounded-xl border border-[#283444] bg-[#151c26]">
+                <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75 group-hover:opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f14]/95 via-[#0b0f14]/15 to-transparent" />
+                <div className="absolute inset-x-5 bottom-5 flex items-end justify-between">
+                  <div>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-[#c3ccda]">Category</span>
+                    <h3 className="font-display mt-1 text-xl font-bold sm:text-2xl">{category}</h3>
+                  </div>
+                  <span className="grid size-10 place-items-center rounded-lg border border-white/20 bg-[#0b0f14]/70 text-white group-hover:border-accent group-hover:bg-accent"><ArrowUpRight size={18} /></span>
+                </div>
+              </Link>
+            </Reveal>
+          );
+        })}
       </div>
     </section>
   );
