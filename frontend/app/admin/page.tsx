@@ -77,10 +77,10 @@ export default function Admin() {
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 id="sales-trend-heading" className="font-display text-sm font-bold">Store activity</h2>
-              <p className="mt-1 text-[10px] text-[#868894]">Orders and revenue · last 7 days</p>
+              <p className="mt-1 text-[10px] text-[#868894]">Orders and non-cancelled order value · last 7 days</p>
             </div>
             <div className="flex gap-4 text-[10px] text-[#a6aaa7]">
-              <span><i className="mr-1.5 inline-block size-2 rounded-full bg-accent" />Revenue</span>
+              <span><i className="mr-1.5 inline-block size-2 rounded-full bg-accent" />Order value</span>
               <span><i className="mr-1.5 inline-block size-2 rounded-full bg-sky-300" />Orders</span>
             </div>
           </div>
@@ -100,9 +100,9 @@ export default function Admin() {
                 <Tooltip
                   contentStyle={{ background: "#111512", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, fontSize: 11 }}
                   labelStyle={{ color: "#f5f5f5", marginBottom: 4 }}
-                  formatter={(value, name) => [name === "Revenue" ? formatMoney(Number(value)) : value, name]}
+                  formatter={(value, name) => [name === "Order value" ? formatMoney(Number(value)) : value, name]}
                 />
-                <Area isAnimationActive={false} yAxisId="revenue" type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" strokeWidth={2.5} fill="url(#adminRevenueFill)" />
+                <Area isAnimationActive={false} yAxisId="revenue" type="monotone" dataKey="revenue" name="Order value" stroke="#3b82f6" strokeWidth={2.5} fill="url(#adminRevenueFill)" />
                 <Area isAnimationActive={false} yAxisId="orders" type="monotone" dataKey="orders" name="Orders" stroke="#7dd3fc" strokeWidth={2} fill="none" />
               </AreaChart>
             </ResponsiveContainer>
