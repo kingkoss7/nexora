@@ -118,6 +118,9 @@ function requireAuthentication(action: string) {
 }
 
 export async function api<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
+  if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_API) {
+    throw new Error("The API is not configured. Set NEXT_PUBLIC_API to your deployed FastAPI URL.");
+  }
   const token = getToken();
   const res = await fetch(API + path, {
     ...opts,

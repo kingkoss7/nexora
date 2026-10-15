@@ -107,9 +107,11 @@ class Order(Base):
             "status IN ('placed', 'packed', 'shipped', 'delivered', 'cancelled')",
             name="ck_orders_status",
         ),
+        UniqueConstraint("user_uid", "idempotency_key", name="uq_orders_user_idempotency_key"),
     )
     oid: Mapped[int] = mapped_column(primary_key=True)
     user_uid: Mapped[int] = mapped_column(ForeignKey("users.uid", name="fk_orders_user_uid_users"), index=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(100), nullable=True)
     total: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(20), default="placed", server_default="placed")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
