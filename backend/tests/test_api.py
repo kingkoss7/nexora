@@ -129,3 +129,54 @@ def test_flow():
         )
         assert cancelled_response.status_code == 200
         assert c.get(f"/products/{pid}").json()["stock"] == stock_before
+
+
+
+def test_password_over_bcrypt_byte_limit_is_rejected():
+    with TestClient(app) as c:
+        response = c.post(
+            "/auth/register",
+            json={"name": "Long Password", "email": "long-password@example.com", "password": "é" * 37},
+        )
+        assert response.status_code == 422
+
+
+def test_checkout_idempotency_key_does_not_create_duplicate_orders():
+    from uuid import uuid4
+
+    with TestClient(app) as c:
+        email = f"checkout-{uuid4().hex}@example.com"
+        registered = c.post(
+            "/auth/register",
+            json={"name": "Checkout Retry", "email": email, "password": "safe-test-password"},
+        )
+        assert registered.status_code == 201
+        login = c.post(
+            "/auth/login",
+            json={"email": email, "password": "safe-test-password"},
+        )
+        assert login.status_code == 200
+        headers = {
+            "Authorization": f"Bearer {login.json()['access_token']}",
+            "Idempotency-Key": f"test-{uuid4().hex}",
+        }
+        product = c.get("/products", params={"size": 100}).json()[0]
+        before_stock = product["stock"]
+        payload = {
+            "items": [{"product_pid": product["pid"], "quantity": 1}],
+            "address": {
+                "recipient_name": "Checkout Retry",
+                "phone": "5550100",
+                "address_line1": "1 Test Street",
+                "city": "Test City",
+                "postal_code": "12345",
+                "country": "US",
+            },
+        }
+        first = c.post("/orders", json=payload, headers=headers)
+        assert first.status_code == 201
+        retry = c.post("/orders", json=payload, headers=headers)
+        assert retry.status_code == 201
+        assert retry.json()["oid"] == first.json()["oid"]
+        current_product = c.get(f"/products/{product['pid']}").json()
+        assert current_product["stock"] == before_stock - 1
