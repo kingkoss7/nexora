@@ -65,7 +65,9 @@ export default function Checkout() {
   const placeOrder = async () => {
     setBusy(true); setError("");
     try {
-      idempotencyKey.current ??= crypto.randomUUID();
+      idempotencyKey.current ??=
+        sessionStorage.getItem("nexora-checkout-idempotency-key") ?? crypto.randomUUID();
+      sessionStorage.setItem("nexora-checkout-idempotency-key", idempotencyKey.current);
       await api("/orders", {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey.current },
@@ -74,6 +76,8 @@ export default function Checkout() {
           address: { ...address, country: address.country.toUpperCase() },
         }),
       });
+      sessionStorage.removeItem("nexora-checkout-idempotency-key");
+      idempotencyKey.current = null;
       saveCart([]); setCart([]); setSuccess(true); setStep(3);
     } catch (err) { setError(err instanceof Error ? err.message : "We couldn't place your order."); }
     finally { setBusy(false); }
