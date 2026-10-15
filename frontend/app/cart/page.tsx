@@ -22,7 +22,7 @@ export default function Cart() {
   const shipping = subtotal >= 100 || !subtotal ? 0 : 7.95;
 
   return (
-    <section className="page-frame mx-auto min-h-[68vh] max-w-[1200px] px-5 pb-14 pt-28 sm:px-8 lg:px-12 lg:pb-20">
+    <section className="page-frame mx-auto min-h-[68vh] max-w-[1200px] px-5 pb-14 pt-20 sm:px-8 lg:px-12 lg:pb-20">
       <p className="eyebrow">Your selection</p>
       <h1 className="display-heading mt-3 text-5xl sm:text-6xl">
         Your bag<span className="ml-3 text-base font-medium text-[#898b99]">({cart.reduce((sum, line) => sum + line.quantity, 0)})</span>

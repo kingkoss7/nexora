@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { getPostLoginPath, getToken } from "@/lib/api";
 
 const publicRoutes = new Set(["/", "/login", "/shop"]);
+const protectedRoutes = new Set(["/account", "/admin", "/cart", "/checkout", "/orders", "/wishlist"]);
 
 export default function Template({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -13,7 +14,7 @@ export default function Template({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const hasToken = Boolean(getToken());
-    const isPublicRoute = publicRoutes.has(pathname) || pathname.startsWith("/products/") || pathname.startsWith("/_");
+    const isPublicRoute = publicRoutes.has(pathname) || pathname.startsWith("/products/");
 
     if (pathname === "/login") {
       if (hasToken) {
@@ -24,7 +25,7 @@ export default function Template({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (isPublicRoute || hasToken) {
+    if (isPublicRoute || hasToken || !protectedRoutes.has(pathname)) {
       setReadyPath(pathname);
       return;
     }

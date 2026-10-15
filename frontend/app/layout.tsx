@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <title>NEXORA — Technology marketplace</title>
         <meta name="description" content="Shop electronics, accessories, and everyday technology essentials at NEXORA." />
-        <meta name="theme-color" content="#0B0F14" />
+        <meta name="theme-color" content="#090D14" />
       </head>
       <body className="min-h-screen depth-layer">
         <Navbar onSearch={(query) => { setSearchQuery(query ?? ""); setSearchOpen(true); }} onCart={() => setCartOpen(true)} />
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
             <div className="flex flex-col gap-4 pt-6 text-[10px] text-[#9993a7] sm:flex-row sm:items-center sm:justify-between">
-              <p>© 2026 NEXORA. All rights reserved.</p>
+              <p>© 2026 NEXORA. All rights reserved. Created by Prayukth and Suhal.</p>
               <div className="flex flex-wrap gap-x-5 gap-y-2"><Link className="footer-link" href="/admin">Store admin</Link><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" className="footer-link">Image attributions</a></div>
             </div>
             <p className="mt-5 text-[9px] text-[#777183]">

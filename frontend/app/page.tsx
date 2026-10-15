@@ -3,7 +3,7 @@ import { ArrowRight, ShieldCheck, Truck, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { addToCart, api, getWishlist, notify, Product, productImage, syncWishlistFromServer } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { festivalPrice, formatMoney, productDisplayName } from "@/lib/catalog";
 import ProductCard from "@/components/commerce/ProductCard";
 import Hero from "@/components/home/Hero";
 import CategoryGrid from "@/components/home/CategoryGrid";
@@ -98,7 +98,7 @@ export default function Home() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">The Great Indian Festival</p>
           <h2 className="font-display mt-2 text-2xl font-bold">20% off across the entire collection.</h2>
           <p className="mt-2 max-w-lg text-sm text-[#9aa8ba]">Festival pricing is applied automatically to every product and confirmed in your order total. Payment is collected on delivery.</p>
-          {featured && <p className="mt-3 text-xs text-[#c3ccda]">{featured.name}: <span className="font-semibold text-white">{formatMoney(festivalPrice(featured))}</span> <span className="text-muted line-through">{formatMoney(featured.price)}</span></p>}
+          {featured && <p className="mt-3 text-xs text-[#c3ccda]">{productDisplayName(featured)}: <span className="font-semibold text-white">{formatMoney(festivalPrice(featured))}</span> <span className="text-muted line-through">{formatMoney(featured.price)}</span></p>}
           <div className="mt-5 flex flex-wrap gap-2 text-[11px] text-[#c3ccda]">
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#283444] px-3 py-2"><Truck size={14} /> Shipping shown at checkout</span>
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#283444] px-3 py-2"><ShieldCheck size={14} /> Cash on delivery</span>
@@ -109,12 +109,12 @@ export default function Home() {
 
       {quick && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuick(null); }}>
-          <div role="dialog" aria-modal="true" aria-label={`Quick view ${quick.name}`} className="panel relative grid max-h-[88vh] w-full max-w-[720px] grid-cols-1 overflow-auto p-5 sm:grid-cols-2 sm:gap-7 sm:p-7">
+          <div role="dialog" aria-modal="true" aria-label={`Quick view ${productDisplayName(quick)}`} className="panel relative grid max-h-[88vh] w-full max-w-[720px] grid-cols-1 overflow-auto p-5 sm:grid-cols-2 sm:gap-7 sm:p-7">
             <button aria-label="Close quick view" onClick={() => setQuick(null)} className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/40"><X size={17} /></button>
-            <img src={productImage(quick)} alt={quick.name} className="aspect-square w-full rounded-2xl object-cover" />
+            <img src={productImage(quick)} alt={productDisplayName(quick)} className="aspect-square w-full rounded-2xl object-cover" />
             <div className="flex flex-col justify-center py-5">
               <p className="text-[10px] uppercase tracking-[.15em] text-accent">{quick.category}</p>
-              <h3 className="font-display mt-3 text-2xl font-bold">{quick.name}</h3>
+              <h3 className="font-display mt-3 text-2xl font-bold">{productDisplayName(quick)}</h3>
               <p className="mt-3 text-sm leading-6 text-[#a6a6a6]">{quick.description}</p>
               <p className="mt-5 font-display text-2xl font-bold text-accent">{formatMoney(festivalPrice(quick))}</p>
               <p className="mt-1 text-xs text-muted line-through">{formatMoney(quick.price)}</p>

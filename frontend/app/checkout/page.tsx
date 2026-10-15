@@ -62,8 +62,8 @@ export default function Checkout() {
     } catch (err) { setError(err instanceof Error ? err.message : "We couldn't place your order."); }
     finally { setBusy(false); }
   };
-  if (!cart.length && !success) return <div className="page-frame mx-auto min-h-[65vh] max-w-3xl px-5 pb-20 pt-28 text-center"><span className="eyebrow">A considered checkout</span><ShoppingBag className="mx-auto mt-10 text-accent" size={28} /><h1 className="display-heading mt-4 text-4xl">Your bag is waiting.</h1><Link href="/shop" className="button-primary mt-6">Explore the collection</Link></div>;
-  return <section className="page-frame mx-auto min-h-[70vh] max-w-[1120px] px-5 pb-16 pt-28 sm:px-8 lg:px-12">
+  if (!cart.length && !success) return <div className="page-frame mx-auto min-h-[65vh] max-w-3xl px-5 pb-20 pt-20 text-center"><span className="eyebrow">A considered checkout</span><ShoppingBag className="mx-auto mt-10 text-accent" size={28} /><h1 className="display-heading mt-4 text-4xl">Your bag is waiting.</h1><Link href="/shop" className="button-primary mt-6">Explore the collection</Link></div>;
+  return <section className="page-frame mx-auto min-h-[70vh] max-w-[1120px] px-5 pb-16 pt-20 sm:px-8 lg:px-12">
     <Link href="/cart" className="inline-flex items-center gap-2 rounded-full border border-white/[.07] bg-white/[.025] px-4 py-2.5 text-[11px] text-[#9b99a7] hover:text-white"><ArrowLeft size={14} /> Back to your bag</Link>
     <p className="eyebrow mt-7">The final details</p>
     <h1 className="display-heading mt-3 text-5xl">Make it yours.</h1>

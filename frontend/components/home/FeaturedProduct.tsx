@@ -4,7 +4,7 @@ import { ArrowRight, Check, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { addToCart, Product, productImage } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { festivalPrice, formatMoney, productDisplayName } from "@/lib/catalog";
 
 export default function FeaturedProduct({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
@@ -22,12 +22,12 @@ export default function FeaturedProduct({ product }: { product: Product }) {
         <h2 className="display-heading mt-2 text-3xl sm:text-4xl">A closer look.</h2>
       </div>
       <div className="grid overflow-hidden rounded-2xl border border-[#283444] bg-[#111720] lg:grid-cols-2">
-        <Link href={`/products/${product.pid}`} aria-label={`View ${product.name}`} className="block aspect-square overflow-hidden bg-[#151c26] lg:aspect-auto lg:min-h-[420px]">
-          <img src={productImage(product)} alt={product.name} className="h-full w-full object-cover" />
+        <Link href={`/products/${product.pid}`} aria-label={`View ${productDisplayName(product)}`} className="block aspect-square overflow-hidden bg-[#151c26] lg:aspect-auto lg:min-h-[420px]">
+          <img src={productImage(product)} alt={productDisplayName(product)} className="h-full w-full object-cover" />
         </Link>
         <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
           <p className="text-xs font-semibold uppercase tracking-[.14em] text-[#9aa8ba]">{product.category}</p>
-          <h3 className="font-display mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{product.name}</h3>
+          <h3 className="font-display mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{productDisplayName(product)}</h3>
           <p className="mt-4 max-w-xl text-sm leading-6 text-[#9aa8ba]">{product.description || "Explore product details and availability."}</p>
           <div className="mt-6 flex flex-wrap items-baseline gap-3">
             <p className="font-display text-3xl font-bold text-white">{formatMoney(festivalPrice(product))}</p>

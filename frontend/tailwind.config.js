@@ -4,14 +4,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#0B0F14",
-        graphite: "#111720",
-        card: "#151C26",
-        muted: "#9AA8BA",
+        ink: "#090D14",
+        graphite: "#101722",
+        card: "#141D2B",
+        muted: "#A1ACBD",
         accent: {
-          DEFAULT: "#2583FF",
-          dim: "#4697FF",
-          deep: "#173B70",
+          DEFAULT: "#3B82F6",
+          dim: "#60A5FA",
+          deep: "#1D4ED8",
         },
       },
       fontFamily: {
@@ -21,10 +21,6 @@ module.exports = {
       boxShadow: {
         glow: "0 8px 24px rgb(37 131 255 / 20%)",
         panel: "0 16px 40px rgb(0 0 0 / 28%)",
-      },
-      transitionDuration: {
-        280: "280ms",
-        320: "320ms",
       },
     },
   },

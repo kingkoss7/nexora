@@ -30,7 +30,7 @@ export default function CategoryGrid() {
           const image = editorialCategories.find((item) => item.slug === category.toLowerCase())?.image ?? editorialCategories[0].image;
           return (
             <Reveal key={category} delay={index * 0.06}>
-              <Link href={`/shop?category=${encodeURIComponent(category)}`} className="group relative block aspect-[1.5/1] overflow-hidden rounded-xl border border-[#283444] bg-[#151c26]">
+              <Link href={`/shop?category=${encodeURIComponent(category)}`} className="group relative block aspect-[1.5/1] overflow-hidden rounded-xl border border-[#263449] bg-[#141d2b]">
                 <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75 group-hover:opacity-90" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f14]/95 via-[#0b0f14]/15 to-transparent" />
                 <div className="absolute inset-x-5 bottom-5 flex items-end justify-between">
@@ -38,7 +38,7 @@ export default function CategoryGrid() {
                     <span className="text-[10px] font-medium uppercase tracking-wider text-[#c3ccda]">Category</span>
                     <h3 className="font-display mt-1 text-xl font-bold sm:text-2xl">{category}</h3>
                   </div>
-                  <span className="grid size-10 place-items-center rounded-lg border border-white/20 bg-[#0b0f14]/70 text-white group-hover:border-accent group-hover:bg-accent"><ArrowUpRight size={18} /></span>
+                  <span className="grid size-10 place-items-center rounded-lg border border-white/20 bg-[#090d14]/80 text-white group-hover:border-accent group-hover:bg-accent"><ArrowUpRight size={18} /></span>
                 </div>
               </Link>
             </Reveal>

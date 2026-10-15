@@ -38,7 +38,7 @@ export default function Wishlist() {
   };
 
   return (
-    <section className="page-frame mx-auto min-h-[60vh] max-w-[1200px] px-5 pb-16 pt-28 sm:px-8 lg:px-12">
+    <section className="page-frame mx-auto min-h-[60vh] max-w-[1200px] px-5 pb-16 pt-20 sm:px-8 lg:px-12">
       <p className="eyebrow">Kept close</p>
       <h1 className="display-heading mt-3 text-5xl sm:text-6xl">Your favorites.</h1>
       {error ? <div role="alert" className="panel mt-8 p-5 text-sm text-rose-200">{error}</div>

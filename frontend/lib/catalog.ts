@@ -17,6 +17,12 @@ export const editorialCategories = [
 export const formatMoney = (value: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value);
 
+export function productDisplayName(product: Pick<Product, "name">) {
+  return /\bwatch\b/i.test(product.name) && !/\bsmartwatch\b/i.test(product.name)
+    ? "Luxury Watch Silver Dynamic"
+    : product.name;
+}
+
 export function festivalPrice(product: Pick<Product, "price"> & Partial<Pick<Product, "festival_price">>) {
   return product.festival_price ?? Math.round((product.price * 0.8 + Number.EPSILON) * 100) / 100;
 }

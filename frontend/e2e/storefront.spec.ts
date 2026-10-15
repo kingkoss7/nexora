@@ -53,6 +53,15 @@ test("account creation collects a name, confirms success, then signs in", async 
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/cart$/);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("token"))).toBe("test-token");
+  await expect(page.getByRole("link", { name: "My account" })).toBeVisible();
+
+  await page.route("**/orders", (route) => route.fulfill({ json: [] }));
+  await page.route("**/addresses", (route) => route.fulfill({ json: [] }));
+  await page.goto("/account");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("token"))).toBeNull();
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
 test("product save and add-to-cart controls require sign-in", async ({ page }) => {
@@ -132,4 +141,69 @@ test("shopping actions require sign-in and mobile navigation opens the shop", as
   await page.getByRole("button", { name: "Open menu" }).click();
   await page.getByRole("link", { name: "Shop", exact: true }).click();
   await expect(page).toHaveURL(/\/shop$/);
+});
+
+test("shop pagination works on mobile without motion or horizontal overflow", async ({ page }) => {
+  const products = Array.from({ length: 15 }, (_, index) => ({
+    pid: index + 1,
+    name: `Product ${index + 1}`,
+    description: "A test product.",
+    category: "electronics",
+    price: 100 + index,
+    stock: 8,
+    festival_discount_percent: 20,
+    festival_price: (100 + index) * 0.8,
+  }));
+  await page.route("**/products?*", (route) => route.fulfill({ json: products }));
+  await page.route("**/categories", (route) => route.fulfill({ json: ["electronics"] }));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/shop");
+
+  await expect(page.getByRole("link", { name: "View Product 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "View Product 13", exact: true })).toHaveCount(0);
+  await expect(page.getByText("Page 1 of 2")).toBeVisible();
+  const cardMotion = await page.locator(".product-card").first().evaluate((card) => {
+    const style = getComputedStyle(card);
+    return { animationName: style.animationName, transitionDuration: style.transitionDuration };
+  });
+
+  expect(cardMotion).toEqual({ animationName: "none", transitionDuration: "0s" });
+
+  const pages = page.getByRole("navigation", { name: "Product pages" });
+  await pages.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByText("Page 2 of 2")).toBeVisible();
+  await expect(page.getByRole("link", { name: "View Product 13", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "View Product 1", exact: true })).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("the mobile homepage does not overflow horizontally", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("unknown routes render not found instead of redirecting guests to sign-in", async ({ page }) => {
+  await page.goto("/this-page-does-not-exist");
+  await expect(page).toHaveURL(/\/this-page-does-not-exist$/);
+  await expect(page.getByText("This page could not be found.", { exact: false })).toBeVisible();
+});
+
+test("invalid persisted cart and wishlist data does not break the storefront", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("cart", "{invalid-json");
+    localStorage.setItem("wishlist", JSON.stringify({ invalid: true }));
+  });
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: "Technology that moves you forward." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cart, 0 items" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Wishlist, 0 saved" })).toBeVisible();
+  await page.evaluate(() => {
+    localStorage.setItem("cart", JSON.stringify([null, { product: null, quantity: 2 }]));
+    window.dispatchEvent(new Event("nexora-cart-change"));
+  });
+  await expect(page.getByRole("button", { name: "Cart, 0 items" })).toBeVisible();
+  await page.getByRole("button", { name: "Cart, 0 items" }).click();
+  await expect(page.getByText("Your cart is empty.")).toBeVisible();
 });

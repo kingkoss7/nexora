@@ -20,7 +20,7 @@ const productPhotos: Record<string, string> = {
   headphones: "1505740420928-5e560c06d30e",
   keyboard: "1517336714731-489689fd1ca8",
   smartwatch: "1546868871-7041f2a55e12",
-  watch: "1524592094714-0f0654e20314",
+  watch: "1636639818651-d97365346a5c",
   smartphone: "1511707171634-5f897ff02aa9",
   phone: "1511707171634-5f897ff02aa9",
   tablet: "1544244015-0df4b3ffc6b0",
@@ -33,6 +33,14 @@ const productPhotos: Record<string, string> = {
   coffee: "1495474472287-4d71bcdd2085",
   lamp: "1507473885765-e6ed057f782c",
   backpack: "1553062407-98eeb64c6a62",
+};
+const readStoredValue = (key: string): unknown => {
+  try {
+    const value = ls()?.getItem(key);
+    return value ? JSON.parse(value) as unknown : [];
+  } catch {
+    return [];
+  }
 };
 export const productImage = (p: Product) => {
   const search = `${p.name} ${p.category}`.toLowerCase();
@@ -47,8 +55,10 @@ export const productImage = (p: Product) => {
   return `https://images.unsplash.com/photo-${photo}?auto=format&fit=crop&w=960&q=85`;
 };
 export const getWishlist = (): number[] => {
-  try { return JSON.parse(ls()?.getItem("wishlist") ?? "[]") as number[]; }
-  catch { return []; }
+  const stored = readStoredValue("wishlist");
+  return Array.isArray(stored)
+    ? [...new Set(stored.filter((pid): pid is number => Number.isSafeInteger(pid) && pid > 0))]
+    : [];
 };
 export const saveWishlist = (items: number[]) => {
   ls()?.setItem("wishlist", JSON.stringify(items));
@@ -74,8 +84,19 @@ export const toggleWishlist = (pid: number) => {
 const ls = () => (typeof window === "undefined" ? null : window.localStorage);
 export const getToken = () => ls()?.getItem("token") ?? null;
 export const getRole = () => ls()?.getItem("role") ?? null;
-export const setAuth = (t: string, r: string) => { ls()?.setItem("token", t); ls()?.setItem("role", r); };
-export const logout = () => { ls()?.removeItem("token"); ls()?.removeItem("role"); };
+const notifyAuthChange = () => {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("nexora-auth-change"));
+};
+export const setAuth = (t: string, r: string) => {
+  ls()?.setItem("token", t);
+  ls()?.setItem("role", r);
+  notifyAuthChange();
+};
+export const logout = () => {
+  ls()?.removeItem("token");
+  ls()?.removeItem("role");
+  notifyAuthChange();
+};
 export function getPostLoginPath() {
   const next = new URLSearchParams(window.location.search).get("next");
   if (!next) return "/";
@@ -101,34 +122,55 @@ export async function api<T = any>(path: string, opts: RequestInit = {}): Promis
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(typeof err.detail === "string" ? err.detail : "Request failed");
+    const detail = typeof err.detail === "string" ? err.detail : "Request failed";
+    if (res.status === 401 && token && ["Invalid token", "Not authenticated", "User not found"].includes(detail)) {
+      logout();
+      notify("Your session expired. Please sign in again.", "info");
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        window.location.assign(`/login?next=${encodeURIComponent(returnTo)}`);
+      }
+    }
+    throw new Error(detail);
   }
   return res.status === 204 ? (undefined as T) : res.json();
 }
 
 export const getCart = (): CartLine[] => {
-  type StoredCartLine = {
-    product: Omit<Product, "pid" | "festival_discount_percent" | "festival_price"> & {
-      pid?: number;
-      id?: number;
-      festival_discount_percent?: number;
-      festival_price?: number;
+  const stored = readStoredValue("cart");
+  if (!Array.isArray(stored)) return [];
+  return stored.flatMap((line): CartLine[] => {
+    if (!line || typeof line !== "object") return [];
+    const { product, quantity } = line as {
+      product?: Partial<Product> & { id?: number };
+      quantity?: number;
     };
-    quantity: number;
-  };
-  const stored = JSON.parse(ls()?.getItem("cart") ?? "[]") as StoredCartLine[];
-  return stored.flatMap(({ product, quantity }) => {
+    if (!product || typeof product !== "object") return [];
     const pid = product.pid ?? product.id;
-    if (typeof pid !== "number" || !Number.isInteger(pid) || typeof quantity !== "number") return [];
-    const { id: _legacyId, ...fields } = product;
+    if (
+      !Number.isSafeInteger(pid) || pid! < 1
+      || !Number.isSafeInteger(quantity) || quantity! < 1
+      || typeof product.name !== "string"
+      || typeof product.category !== "string"
+      || typeof product.price !== "number" || !Number.isFinite(product.price) || product.price < 0
+      || typeof product.stock !== "number" || !Number.isSafeInteger(product.stock) || product.stock < 0
+    ) return [];
+    const discount = product.festival_discount_percent;
+    const festivalPrice = product.festival_price;
     return [{
       product: {
-        ...fields,
-        pid,
-        festival_discount_percent: product.festival_discount_percent ?? 20,
-        festival_price: product.festival_price ?? Math.round((product.price * 0.8 + Number.EPSILON) * 100) / 100,
+        pid: pid!,
+        name: product.name,
+        description: typeof product.description === "string" ? product.description : "",
+        category: product.category,
+        price: product.price,
+        stock: product.stock,
+        festival_discount_percent: typeof discount === "number" && Number.isFinite(discount) && discount >= 0 ? discount : 20,
+        festival_price: typeof festivalPrice === "number" && Number.isFinite(festivalPrice) && festivalPrice >= 0
+          ? festivalPrice
+          : Math.round((product.price * 0.8 + Number.EPSILON) * 100) / 100,
       },
-      quantity,
+      quantity: quantity!,
     }];
   });
 };

@@ -29,18 +29,20 @@ export default function ProductPage() {
       void syncWishlistFromServer().then((ids) => setSaved(ids.includes(item.pid))).catch((err: unknown) => {
         notify(err instanceof Error ? err.message : "Wishlist could not be loaded.", "info");
       });
+      void api<Product[]>("/products?size=100").then((items) => {
+        setRelated(items.filter((candidate) => candidate.pid !== item.pid && candidate.category === item.category).slice(0, 3));
+      }).catch((err: unknown) => {
+        notify(err instanceof Error ? err.message : "Related products could not be loaded.", "info");
+      });
     }).catch((err: unknown) => setError(err instanceof Error ? err.message : "That product could not be found."));
-    api<Product[]>("/products?size=100").then((items) => setRelated(items.filter((item) => item.pid !== pid).slice(0, 3))).catch((err: unknown) => {
-      notify(err instanceof Error ? err.message : "Related products could not be loaded.", "info");
-    });
   }, [params.pid]);
 
   if (error) return <div className="mx-auto max-w-3xl px-5 py-32 text-center"><p className="text-[#c7c7c7]">{error}</p><Link href="/shop" className="button-secondary mt-6">Back to shop</Link></div>;
   if (!product) return <div className="mx-auto max-w-6xl px-5 py-24"><div className="grid gap-10 md:grid-cols-2"><div className="skeleton aspect-square rounded-3xl" /><div className="space-y-4 pt-10"><div className="skeleton h-5 w-1/3 rounded" /><div className="skeleton h-10 w-3/4 rounded" /><div className="skeleton h-4 w-1/2 rounded" /></div></div></div>;
 
   return (
-    <div className="page-frame mx-auto max-w-[1200px] px-5 pb-28 pt-28 sm:px-8 lg:px-12">
-      <Link href="/shop" className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/[.07] bg-white/[.025] px-4 py-2.5 text-[11px] text-muted transition hover:border-accent/20 hover:text-white"><ArrowLeft size={14} /> Back to the edit</Link>
+    <div className="page-frame mx-auto max-w-[1200px] px-5 pb-28 pt-20 sm:px-8 lg:px-12">
+      <Link href="/shop" className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/[.07] bg-white/[.025] px-4 py-2.5 text-[11px] text-muted hover:border-accent/20 hover:text-white"><ArrowLeft size={14} /> Back to the edit</Link>
       <div className="grid gap-8 md:grid-cols-[1.04fr_.96fr] md:gap-14">
         <div className="relative">
           <ProductGallery images={[productImage(product)]} alt={product.name} />

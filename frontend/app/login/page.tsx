@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, LockKeyhole } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { api, getPostLoginPath, notify, setAuth, syncCartFromServer, syncWishlistFromServer } from "@/lib/api";
@@ -9,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,12 +32,10 @@ export default function Login() {
         setSuccess(result.message);
         setRegister(false);
         setPassword("");
-        window.setTimeout(() => {
-          const query = new URLSearchParams({ registered: "1" });
-          const next = new URLSearchParams(window.location.search).get("next");
-          if (next) query.set("next", next);
-          router.replace(`/login?${query.toString()}`);
-        }, 1200);
+        const query = new URLSearchParams({ registered: "1" });
+        const next = new URLSearchParams(window.location.search).get("next");
+        if (next) query.set("next", next);
+        router.replace(`/login?${query.toString()}`);
         return;
       }
       const result = await api<{ access_token: string; role: string }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
@@ -50,7 +49,7 @@ export default function Login() {
     finally { setBusy(false); }
   }
   return <section
-    className="mx-auto grid min-h-[78vh] max-w-[1080px] items-center gap-8 px-5 pb-10 pt-24 sm:px-8 md:grid-cols-[1fr_420px] lg:px-12"
+    className="mx-auto grid min-h-[78vh] max-w-[1080px] items-center gap-8 px-5 pb-10 pt-16 sm:px-8 md:grid-cols-[1fr_420px] lg:px-12"
   >
     <div className="relative min-w-0">
       <p className="eyebrow">NEXORA account</p>
@@ -65,7 +64,7 @@ export default function Login() {
       <h2 className="font-display mt-5 text-2xl font-extrabold tracking-tight">{register ? "Create an account" : "Welcome back."}</h2>
       {register && <label className="mt-7 block text-[10px] font-semibold text-[#bab8c5]">Full name<input className="field mt-2" type="text" autoComplete="name" maxLength={150} required value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" /></label>}
       <label className={`${register ? "mt-4" : "mt-7"} block text-[10px] font-semibold text-[#bab8c5]`}>Email address<input className="field mt-2" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></label>
-      <label className="mt-4 block text-[10px] font-semibold text-[#bab8c5]">Password<input className="field mt-2" type="password" autoComplete={register ? "new-password" : "current-password"} minLength={6} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" /></label>
+      <div className="mt-4 text-[10px] font-semibold text-[#bab8c5]"><label htmlFor="password">Password</label><span className="relative mt-2 block"><input id="password" className="field pr-12" type={showPassword ? "text" : "password"} autoComplete={register ? "new-password" : "current-password"} minLength={6} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" /><button type="button" aria-label={showPassword ? "Hide entered text" : "Show entered text"} aria-pressed={showPassword} onClick={() => setShowPassword((visible) => !visible)} className="absolute inset-y-0 right-2 grid w-10 place-items-center text-muted hover:text-white">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></span></div>
       {error && <p role="alert" className="mt-4 rounded-xl border border-rose-300/20 bg-rose-300/[.08] p-3 text-xs text-rose-200">{error}</p>}
       {success && <p role="status" className="mt-4 rounded-xl border border-accent/20 bg-accent/[.08] p-3 text-xs text-accent">{success}</p>}
       <button disabled={busy} className="button-primary mt-6 w-full disabled:opacity-60">{busy ? "One moment…" : register ? "Create your account" : "Sign in"} <ArrowRight size={15} /></button>

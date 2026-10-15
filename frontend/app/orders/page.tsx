@@ -21,7 +21,7 @@ export default function Orders() {
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load orders."));
   }, []);
   return (
-    <section className="page-frame mx-auto min-h-[65vh] max-w-[1050px] px-5 pb-16 pt-28 sm:px-8 lg:px-12">
+    <section className="page-frame mx-auto min-h-[65vh] max-w-[1050px] px-5 pb-16 pt-20 sm:px-8 lg:px-12">
       <p className="eyebrow">From our door to yours</p>
       <h1 className="display-heading mt-3 text-5xl sm:text-6xl">Order history.</h1>
       {error ? (

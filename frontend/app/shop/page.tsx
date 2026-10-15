@@ -23,6 +23,8 @@ function ShopInner() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [saved, setSaved] = useState<number[]>([]);
   const [quick, setQuick] = useState<Product | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
   const load = useCallback(async () => {
     const search = new URLSearchParams({ sort, size: "100" });
@@ -39,6 +41,7 @@ function ShopInner() {
   }, [category, maxPrice, minPrice, query, sort]);
 
   useEffect(() => { const t = window.setTimeout(() => void load(), 160); return () => window.clearTimeout(t); }, [load]);
+  useEffect(() => { setPage(1); }, [query, category, sort, minPrice, maxPrice, inStock]);
   useEffect(() => {
     api<string[]>("/categories").then((values) => {
       setCategories(values);
@@ -56,6 +59,8 @@ function ShopInner() {
   const filtered = useMemo(() => (items ?? []).filter((item) => (
     (!inStock || item.stock > 0) && festivalPrice(item) >= minPrice && festivalPrice(item) <= maxPrice
   )), [items, inStock, maxPrice, minPrice]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visibleProducts = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const FilterPanel = (
     <div className="space-y-6">
@@ -82,7 +87,7 @@ function ShopInner() {
   );
 
   return (
-    <section className="page-frame mx-auto max-w-[1440px] px-5 pb-20 pt-28 sm:px-8 lg:px-12">
+    <section className="page-frame mx-auto max-w-[1440px] px-5 pb-20 pt-20 sm:px-8 lg:px-12">
       <p className="eyebrow">NEXORA marketplace</p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -105,7 +110,7 @@ function ShopInner() {
           </div>
           <nav aria-label="Browse categories" className="scrollbar-none mb-6 flex gap-2 overflow-x-auto pb-1">
             {["All", ...categories].map((item) => (
-              <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)} className={`shrink-0 rounded-full border px-3.5 py-2 text-[10px] capitalize transition-colors ${category === item ? "border-accent/35 bg-accent/10 text-accent" : "border-white/[.08] bg-white/[.025] text-[#a3aaa5] hover:border-white/20 hover:text-white"}`}>{item}</button>
+              <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)} className={`shrink-0 rounded-full border px-3.5 py-2 text-[10px] capitalize ${category === item ? "border-accent/35 bg-accent/10 text-accent" : "border-white/[.08] bg-white/[.025] text-[#a3aaa5] hover:border-white/20 hover:text-white"}`}>{item}</button>
             ))}
           </nav>
           {filtersOpen && (
@@ -118,13 +123,20 @@ function ShopInner() {
           ) : error ? (
             <div className="panel p-8 text-center text-sm text-rose-200">{error}</div>
           ) : filtered.length ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((product, index) => (
+            <>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleProducts.map((product, index) => (
                   <div key={product.pid}>
                     <ProductCard product={product} index={index} saved={saved.includes(product.pid)} onWishlist={() => setSaved(getWishlist())} onQuick={() => setQuick(product)} />
                   </div>
                 ))}
-            </div>
+              </div>
+              {pageCount > 1 && <nav aria-label="Product pages" className="mt-8 flex items-center justify-center gap-2">
+                <button type="button" disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="button-secondary !min-h-10 !px-4 !py-2 text-xs">Previous</button>
+                <span aria-live="polite" className="px-3 text-xs text-muted">Page {page} of {pageCount}</span>
+                <button type="button" disabled={page === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} className="button-secondary !min-h-10 !px-4 !py-2 text-xs">Next</button>
+              </nav>}
+            </>
           ) : (
             <div className="panel py-16 text-center"><p className="text-sm">No products match these filters.</p><button className="button-secondary mt-4 !text-xs" onClick={() => { setCategory("All"); setMinPrice(0); setMaxPrice(100000); setInStock(false); setQuery(""); }}>Clear filters <X size={12} /></button></div>
           )}
