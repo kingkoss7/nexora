@@ -1,13 +1,14 @@
 "use client";
 import { ArrowLeft, ArrowRight, Check, CreditCard, MapPin, ShieldCheck, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { api, CartLine, getCart, getSavedAddresses, getToken, notify, SavedAddress, saveCart, syncCartFromServer } from "@/lib/api";
 import { addMoney, festivalPrice, formatMoney, multiplyMoney, subtractMoney, sumMoney } from "@/lib/catalog";
 
 const steps = ["Your bag", "Delivery", "Payment", "Confirmed"];
 export default function Checkout() {
   const [cart, setCart] = useState<CartLine[]>([]);
+  const idempotencyKey = useRef<string | null>(null);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -17,6 +18,10 @@ export default function Checkout() {
   const [saveAddress, setSaveAddress] = useState(false);
   const [address, setAddress] = useState({ label: "Home", recipient_name: "", phone: "", address_line1: "", address_line2: "", city: "", region: "", postal_code: "", country: "" });
   useEffect(() => {
+    if (!getToken()) {
+      window.location.replace(`/login?next=${encodeURIComponent("/checkout")}`);
+      return;
+    }
     setCart(getCart());
     void syncCartFromServer().then(setCart).catch((err: unknown) => setError(err instanceof Error ? err.message : "Your bag could not be loaded."));
     void getSavedAddresses().then((items) => {
@@ -60,7 +65,15 @@ export default function Checkout() {
   const placeOrder = async () => {
     setBusy(true); setError("");
     try {
-      await api("/orders", { method: "POST", body: JSON.stringify({ items: cart.map((line) => ({ product_pid: line.product.pid, quantity: line.quantity })), address: { ...address, country: address.country.toUpperCase() } }) });
+      idempotencyKey.current ??= crypto.randomUUID();
+      await api("/orders", {
+        method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey.current },
+        body: JSON.stringify({
+          items: cart.map((line) => ({ product_pid: line.product.pid, quantity: line.quantity })),
+          address: { ...address, country: address.country.toUpperCase() },
+        }),
+      });
       saveCart([]); setCart([]); setSuccess(true); setStep(3);
     } catch (err) { setError(err instanceof Error ? err.message : "We couldn't place your order."); }
     finally { setBusy(false); }
