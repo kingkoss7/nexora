@@ -4,7 +4,15 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
 class Creds(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6)
+    password: str = Field(min_length=6, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def bcrypt_byte_limit(cls, value: str) -> str:
+        # bcrypt only processes up to 72 input bytes; reject instead of truncating.
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must be at most 72 UTF-8 bytes")
+        return value
 
 class RegisterIn(Creds):
     name: str = Field(min_length=1, max_length=150)
