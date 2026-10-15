@@ -25,7 +25,7 @@ def seed():
             ("Desk Lamp", "home", 35, 50, "A compact adjustable lamp for your desk."),
             ("Backpack", "fashion", 49, 35, "A practical backpack for commuting and travel."),
             ("Smartwatch Active", "electronics", 2499, 24, "A smartwatch for notifications, activity tracking, and everyday use."),
-            ("Luxury Watch Silver Dynamic", "accessories", 1799, 18, "A premium silver dynamic watch with a refined luxury finish and timeless style."),
+            ("Luxury Watch Silver Dynamic", "accessories", 35000, 18, "A premium silver dynamic watch with a refined luxury finish and timeless style."),
             ("Android Smartphone", "electronics", 14999, 16, "An Android smartphone for communication, photos, and daily apps."),
             ("10-inch Android Tablet", "electronics", 9999, 14, "A 10-inch tablet for reading, streaming, and browsing."),
             ("Mirrorless Camera", "electronics", 42999, 8, "A compact mirrorless camera for photography and video."),
