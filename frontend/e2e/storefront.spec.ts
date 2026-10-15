@@ -207,3 +207,134 @@ test("invalid persisted cart and wishlist data does not break the storefront", a
   await page.getByRole("button", { name: "Cart, 0 items" }).click();
   await expect(page.getByText("Your cart is empty.")).toBeVisible();
 });
+
+test("checkout validates delivery details and submits a server-priced order", async ({ page }) => {
+  const product = {
+    pid: 42,
+    name: "Test Headphones",
+    description: "Checkout test item.",
+    category: "electronics",
+    price: 0.1,
+    stock: 5,
+    festival_discount_percent: 20,
+    festival_price: 0.08,
+  };
+  let orderRequest: { items: { product_pid: number; quantity: number }[]; address: Record<string, string> } | undefined;
+  await page.addInitScript((cartProduct) => {
+    localStorage.setItem("token", "test-token");
+    localStorage.setItem("role", "customer");
+    localStorage.setItem("cart", JSON.stringify([{ product: cartProduct, quantity: 2 }]));
+  }, product);
+  let serverCart = { items: [{ product, quantity: 1 }] };
+  await page.route("**/cart", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: serverCart });
+      return;
+    }
+    const request = route.request().postDataJSON() as { items: { product_pid: number; quantity: number }[] };
+    serverCart = {
+      items: request.items.map((item) => ({ product, quantity: item.quantity })),
+    };
+    await route.fulfill({ json: serverCart });
+  });
+  await page.route("**/addresses", (route) => route.fulfill({ json: [] }));
+  await page.route("**/orders", async (route) => {
+    if (route.request().method() === "POST") {
+      orderRequest = route.request().postDataJSON();
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          oid: 99,
+          total: 8.19,
+          status: "placed",
+          created_at: new Date().toISOString(),
+          items: [{ product_name: product.name, quantity: 3, price: 0.08 }],
+          delivery_recipient_name: "Test Shopper",
+          delivery_phone: "1234567890",
+          delivery_address_line1: "1 Test Street",
+          delivery_address_line2: null,
+          delivery_city: "Test City",
+          delivery_region: null,
+          delivery_postal_code: "12345",
+          delivery_country: "US",
+          payment: { method: "cash_on_delivery", status: "pending", amount: 8.19 },
+        }),
+      });
+      return;
+    }
+    await route.fulfill({ json: [] });
+  });
+
+  await page.goto("/checkout");
+  await expect(page.getByText("3 × Test Headphones")).toBeVisible();
+  await expect(page.getByText("₹8.19", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Add delivery details" }).click();
+  await page.getByLabel("Full name").fill("Test Shopper");
+  await page.getByLabel("Phone").fill("1234567890");
+  await page.getByLabel("Street address").fill("1 Test Street");
+  await page.getByLabel("City").fill("Test City");
+  await page.getByLabel("Postal code").fill("12345");
+  await page.getByLabel("Country code (2 letters)").fill("us");
+  await page.getByRole("button", { name: "Continue to payment" }).click();
+  await expect(page.getByText("Cash on delivery")).toBeVisible();
+  await page.getByRole("button", { name: /Place order/ }).click();
+
+  await expect(page.getByRole("heading", { name: "Order placed." })).toBeVisible();
+  expect(orderRequest).toEqual({
+    items: [{ product_pid: product.pid, quantity: 3 }],
+    address: {
+      label: "Home",
+      recipient_name: "Test Shopper",
+      phone: "1234567890",
+      address_line1: "1 Test Street",
+      address_line2: "",
+      city: "Test City",
+      region: "",
+      postal_code: "12345",
+      country: "US",
+    },
+  });
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("cart"))).toBe("[]");
+});
+
+test("signed-in shoppers can sync wishlist and cart changes", async ({ page }) => {
+  const product = {
+    pid: 73,
+    name: "Saved Headphones",
+    description: "A saved test product.",
+    category: "electronics",
+    price: 150,
+    stock: 4,
+    festival_discount_percent: 20,
+    festival_price: 120,
+  };
+  let cartUpdate: { items: { product_pid: number; quantity: number }[] } | undefined;
+  await page.addInitScript(() => {
+    localStorage.setItem("token", "test-token");
+    localStorage.setItem("role", "customer");
+  });
+  await page.route("**/products*", (route) => route.fulfill({ json: [product] }));
+  await page.route("**/categories", (route) => route.fulfill({ json: ["electronics"] }));
+  await page.route("**/wishlist", (route) => route.fulfill({ json: { items: [] } }));
+  await page.route("**/wishlist/73", (route) => route.fulfill({ status: 204 }));
+  await page.route("**/cart", async (route) => {
+    if (route.request().method() === "PUT") cartUpdate = route.request().postDataJSON();
+    await route.fulfill({ json: { items: [] } });
+  });
+
+  await page.goto("/");
+  const card = page.locator("article.product-card").filter({ hasText: "Saved Headphones" });
+  await expect(card).toBeVisible();
+  await card.getByRole("button", { name: "Add to wishlist" }).click();
+  await expect(page.getByRole("link", { name: "Wishlist, 1 saved" })).toBeVisible();
+  await card.getByRole("button", { name: "Add to Cart" }).click();
+  await expect(page.getByRole("button", { name: "Cart, 1 items" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Cart, 1 items" }).click();
+  const drawer = page.getByRole("dialog", { name: "Shopping cart" });
+  await expect(drawer.getByText("Saved Headphones")).toBeVisible();
+  await drawer.getByRole("button", { name: "Increase" }).click();
+  await expect(drawer.getByText("2", { exact: true })).toBeVisible();
+  await expect.poll(() => cartUpdate?.items).toEqual([{ product_pid: 73, quantity: 2 }]);
+});

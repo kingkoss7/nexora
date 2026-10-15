@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { addToCart, api, getWishlist, notify, Product, productImage, syncWishlistFromServer, toggleWishlist } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { festivalPrice, formatMoney, multiplyMoney } from "@/lib/catalog";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductCard from "@/components/commerce/ProductCard";
 import WishlistButton from "@/components/ui/WishlistButton";
@@ -77,7 +77,7 @@ export default function ProductPage() {
               }}
               className="button-primary min-h-12 disabled:opacity-40"
             >
-              {added ? <><Check size={17} /> Added</> : <><ShoppingBag size={17} /> Add to Cart — {formatMoney(festivalPrice(product) * quantity)}</>}
+              {added ? <><Check size={17} /> Added</> : <><ShoppingBag size={17} /> Add to Cart — {formatMoney(multiplyMoney(festivalPrice(product), quantity))}</>}
             </button>
             <button
               type="button"
@@ -97,7 +97,7 @@ export default function ProductPage() {
               }}
               className="button-primary w-full"
             >
-              Add to Cart — {formatMoney(festivalPrice(product) * quantity)}
+              Add to Cart — {formatMoney(multiplyMoney(festivalPrice(product), quantity))}
             </button>
           </div>
           <div className="mt-7 grid grid-cols-2 gap-3 text-[11px] text-[#b1b1b1]">

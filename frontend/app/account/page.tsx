@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { api, getRole, getSavedAddresses, getWishlist, logout, notify, SavedAddress } from "@/lib/api";
-import { formatMoney } from "@/lib/catalog";
+import { formatMoney, sumMoney } from "@/lib/catalog";
 
 type Order = { oid: number; total: number; status: string; created_at: string };
 const menu = [{ label: "Overview", href: "/account", icon: UserRound }, { label: "My orders", href: "/orders", icon: Package }, { label: "Wishlist", href: "/wishlist", icon: Heart }, { label: "Addresses", href: "/account#addresses", icon: MapPin }];
@@ -39,7 +39,7 @@ export default function Account() {
       notify(action === "default" ? "Default delivery address updated." : "Delivery address removed.", "info");
     } catch (err) { setAddressError(err instanceof Error ? err.message : "The address could not be updated."); }
   };
-  const spent = orders?.reduce((sum, order) => sum + (order.status === "cancelled" ? 0 : order.total), 0) ?? 0;
+  const spent = sumMoney(orders?.filter((order) => order.status !== "cancelled").map((order) => order.total) ?? []);
   const cards = [{ label: "Total orders", value: orders?.length ?? "—", icon: Package }, { label: "Saved favorites", value: favoriteCount, icon: Heart }, { label: "Total spent", value: formatMoney(spent), icon: WalletCards }];
   return <section className="page-frame mx-auto min-h-[70vh] max-w-[1340px] px-5 pb-14 pt-20 sm:px-8 lg:px-12">  <div className="mb-8"><p className="eyebrow">Your NEXORA account</p><h1 className="display-heading mt-3 text-5xl sm:text-6xl">Account overview.</h1><p className="mt-3 max-w-lg text-sm leading-6 text-[#a1acbd]">Your orders, favorites, and delivery details in one place.</p></div><div className="grid gap-5 lg:grid-cols-[230px_1fr]">    <aside className="panel h-fit p-3">{menu.map(({ label, href, icon: Icon }, index) => <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-xs ${index === 0 ? "bg-accent/12 font-semibold text-accent" : "text-[#a09eab] hover:bg-white/[.05] hover:text-white"}`}><Icon size={15} />{label}</Link>)}<button onClick={() => { logout(); router.push("/login"); }} className="mt-2 flex w-full items-center gap-3 border-t border-white/[.08] px-3 pt-4 text-xs text-[#a09eab] hover:text-white"><LogOut size={15} /> Sign out</button></aside>
     <div className="min-w-0 space-y-5">    <div className="panel relative overflow-hidden p-6 sm:p-8"><p className="relative text-[10px] uppercase tracking-wider text-accent">Your account overview</p><h2 className="font-display relative mt-2 text-2xl font-bold">{error ? "Welcome to NEXORA." : "Welcome back."}</h2><p className="relative mt-2 max-w-lg text-xs leading-6 text-[#a3a2ae]">{error === "Not authenticated" ? "Sign in to see your order history and personal space." : "Here’s a summary of your orders, saved products and account activity."}</p>{error === "Not authenticated" && <Link href="/login?next=%2Faccount" className="button-primary relative mt-5 !py-2.5 !text-xs">Sign in to your account <ArrowRight size={14} /></Link>}</div>    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{cards.map(({ label, value, icon: Icon }) => <div key={label} className="panel p-4"><span className="grid h-9 w-9 place-items-center rounded-xl bg-accent/10 text-accent"><Icon size={16} /></span><p className="font-display mt-4 text-xl font-bold">{value}</p><p className="mt-1 text-[10px] text-[#9394a1]">{label}</p></div>)}</div>

@@ -3,7 +3,7 @@ import { ArrowRight, PackageCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { formatMoney } from "@/lib/catalog";
+import { formatMoney, multiplyMoney } from "@/lib/catalog";
 
 type Order = {
   oid: number; total: number; status: string; created_at: string;
@@ -70,7 +70,7 @@ export default function Orders() {
                 {order.delivery_address_line1 && <p className="mt-4 text-[10px] leading-5 text-[#858795]">Delivering to: {order.delivery_address_line1}, {order.delivery_city}{order.delivery_region ? `, ${order.delivery_region}` : ""} {order.delivery_postal_code}, {order.delivery_country}</p>}
                 <div className="my-4 border-t border-white/[.08]" />
                 <ul className="space-y-2 text-xs text-[#b8b6c2]">
-                  {order.items.map((item, itemIndex) => <li key={`${order.oid}-${itemIndex}`} className="flex justify-between gap-3"><span>{item.quantity} × {item.product_name}</span><span>{formatMoney(item.quantity * item.price)}</span></li>)}
+                  {order.items.map((item, itemIndex) => <li key={`${order.oid}-${itemIndex}`} className="flex justify-between gap-3"><span>{item.quantity} × {item.product_name}</span><span>{formatMoney(multiplyMoney(item.price, item.quantity))}</span></li>)}
                 </ul>
                 <div className="mt-4 flex justify-between border-t border-white/[.08] pt-4 text-sm font-bold"><span>Total</span><span>{formatMoney(order.total)}</span></div>
               </article>

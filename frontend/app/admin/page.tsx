@@ -2,7 +2,7 @@
 import { AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, BarChart3, Box, ClipboardList, Package, Plus, Search, Shield, Sparkles, Users, Wallet, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, Product } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { addMoney, festivalPrice, formatMoney } from "@/lib/catalog";
 import Link from "next/link";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -51,7 +51,7 @@ export default function Admin() {
       const day = byDate.get(key);
       if (!day) continue;
       day.orders += 1;
-      if (order.status !== "cancelled") day.revenue += order.total;
+      if (order.status !== "cancelled") day.revenue = addMoney(day.revenue, order.total);
     }
     return days;
   }, [orders]);

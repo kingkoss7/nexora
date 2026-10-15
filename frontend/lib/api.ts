@@ -84,10 +84,12 @@ export const toggleWishlist = (pid: number) => {
 const ls = () => (typeof window === "undefined" ? null : window.localStorage);
 export const getToken = () => ls()?.getItem("token") ?? null;
 export const getRole = () => ls()?.getItem("role") ?? null;
+const CART_SYNC_BASELINE = "cart-sync-baseline";
 const notifyAuthChange = () => {
   if (typeof window !== "undefined") window.dispatchEvent(new Event("nexora-auth-change"));
 };
 export const setAuth = (t: string, r: string) => {
+  ls()?.removeItem(CART_SYNC_BASELINE);
   ls()?.setItem("token", t);
   ls()?.setItem("role", r);
   notifyAuthChange();
@@ -95,6 +97,7 @@ export const setAuth = (t: string, r: string) => {
 export const logout = () => {
   ls()?.removeItem("token");
   ls()?.removeItem("role");
+  ls()?.removeItem(CART_SYNC_BASELINE);
   notifyAuthChange();
 };
 export function getPostLoginPath() {
@@ -168,7 +171,7 @@ export const getCart = (): CartLine[] => {
         festival_discount_percent: typeof discount === "number" && Number.isFinite(discount) && discount >= 0 ? discount : 20,
         festival_price: typeof festivalPrice === "number" && Number.isFinite(festivalPrice) && festivalPrice >= 0
           ? festivalPrice
-          : Math.round((product.price * 0.8 + Number.EPSILON) * 100) / 100,
+          : Math.round(Math.round(product.price * 100) * 0.8) / 100,
       },
       quantity: quantity!,
     }];
@@ -179,6 +182,7 @@ export const saveCart = (c: CartLine[]) => {
   if (typeof window !== "undefined") window.dispatchEvent(new Event("nexora-cart-change"));
 };
 let cartSyncQueue: Promise<void> = Promise.resolve();
+let cartSyncInFlight: Promise<CartLine[]> | null = null;
 export function persistCart(c: CartLine[]) {
   saveCart(c);
   if (!getToken()) return;
@@ -191,19 +195,47 @@ export function persistCart(c: CartLine[]) {
     notify(error instanceof Error ? `Your bag could not be saved: ${error.message}` : "Your bag could not be saved.", "info");
   });
 }
-export async function syncCartFromServer(): Promise<CartLine[]> {
-  if (!getToken()) return getCart();
+export function syncCartFromServer(): Promise<CartLine[]> {
+  if (!getToken()) return Promise.resolve(getCart());
+  if (cartSyncInFlight) return cartSyncInFlight;
+  cartSyncInFlight = mergeCartFromServer().finally(() => {
+    cartSyncInFlight = null;
+  });
+  return cartSyncInFlight;
+}
+
+async function mergeCartFromServer(): Promise<CartLine[]> {
   const remote = await api<{ items: CartLine[] }>("/cart");
+  const previousSync = readStoredValue(CART_SYNC_BASELINE);
+  const baseline = new Map<number, number>(
+    Array.isArray(previousSync)
+      ? previousSync.flatMap((entry): [number, number][] => {
+        if (!entry || typeof entry !== "object") return [];
+        const item = entry as { pid?: unknown; quantity?: unknown };
+        return Number.isSafeInteger(item.pid) && Number.isSafeInteger(item.quantity)
+          && (item.pid as number) > 0 && (item.quantity as number) > 0
+          ? [[item.pid as number, item.quantity as number]]
+          : [];
+      })
+      : [],
+  );
+  const localById = new Map(getCart().map((line) => [line.product.pid, line]));
+  const remoteById = new Map(remote.items.map((line) => [line.product.pid, line]));
   const merged = new Map<number, CartLine>();
-  for (const line of [...remote.items, ...getCart()]) {
-    const existing = merged.get(line.product.pid);
-    merged.set(line.product.pid, {
-      product: line.product,
-      quantity: Math.min(line.product.stock, (existing?.quantity ?? 0) + line.quantity),
-    });
+  for (const pid of new Set([...localById.keys(), ...remoteById.keys(), ...baseline.keys()])) {
+    const local = localById.get(pid);
+    const saved = remoteById.get(pid);
+    const product = saved?.product ?? local?.product;
+    if (!product) continue;
+    const quantity = Math.min(
+      product.stock,
+      Math.max(0, (saved?.quantity ?? 0) + (local?.quantity ?? 0) - (baseline.get(pid) ?? 0)),
+    );
+    if (quantity > 0) {
+      merged.set(pid, { product, quantity });
+    }
   }
   const result = [...merged.values()].filter((line) => line.quantity > 0);
-  saveCart(result);
   if (result.some((line) => !remote.items.some((saved) => saved.product.pid === line.product.pid && saved.quantity === line.quantity))
       || remote.items.some((line) => !result.some((saved) => saved.product.pid === line.product.pid))) {
     await api("/cart", {
@@ -211,6 +243,8 @@ export async function syncCartFromServer(): Promise<CartLine[]> {
       body: JSON.stringify({ items: result.map((line) => ({ product_pid: line.product.pid, quantity: line.quantity })) }),
     });
   }
+  saveCart(result);
+  ls()?.setItem(CART_SYNC_BASELINE, JSON.stringify(result.map((line) => ({ pid: line.product.pid, quantity: line.quantity }))));
   return result;
 }
 let wishlistSyncQueue: Promise<void> = Promise.resolve();

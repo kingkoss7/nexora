@@ -3,7 +3,7 @@ import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CartLine, getCart, notify, persistCart, productImage } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { addMoney, festivalPrice, formatMoney, multiplyMoney, subtractMoney, sumMoney } from "@/lib/catalog";
 
 export default function Cart() {
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -16,9 +16,9 @@ export default function Cart() {
     if (removed) notify(`${removed.product.name} removed from your bag.`, "info");
     else if (changed) notify("Order updated");
   };
-  const subtotal = cart.reduce((sum, line) => sum + festivalPrice(line.product) * line.quantity, 0);
-  const originalSubtotal = cart.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
-  const savings = originalSubtotal - subtotal;
+  const subtotal = sumMoney(cart.map((line) => multiplyMoney(festivalPrice(line.product), line.quantity)));
+  const originalSubtotal = sumMoney(cart.map((line) => multiplyMoney(line.product.price, line.quantity)));
+  const savings = subtractMoney(originalSubtotal, subtotal);
   const shipping = subtotal >= 100 || !subtotal ? 0 : 7.95;
 
   return (
@@ -65,7 +65,7 @@ export default function Cart() {
                         <span className="min-w-3 text-center text-xs">{line.quantity}</span>
                         <button disabled={line.quantity >= line.product.stock} aria-label="Increase quantity" className="text-[#b8b6c3] disabled:opacity-30" onClick={() => update(cart.map((item) => item.product.pid === line.product.pid ? { ...item, quantity: Math.min(item.product.stock, item.quantity + 1) } : item))}><Plus size={13} /></button>
                       </div>
-                      <span className="text-sm font-bold">{formatMoney(festivalPrice(line.product) * line.quantity)}</span>
+                      <span className="text-sm font-bold">{formatMoney(multiplyMoney(festivalPrice(line.product), line.quantity))}</span>
                     </div>
                   </div>
                 </article>
@@ -79,9 +79,9 @@ export default function Cart() {
               <div className="flex justify-between text-[#a3a2ae]"><span>Subtotal</span><span>{formatMoney(subtotal)}</span></div>
               <div className="flex justify-between text-[#36c98f]"><span>Festival savings</span><span>−{formatMoney(savings)}</span></div>
               <div className="flex justify-between text-[#a3a2ae]"><span>Shipping</span><span>{shipping ? formatMoney(shipping) : "On us"}</span></div>
-              {subtotal > 0 && subtotal < 100 && <p className="rounded-xl bg-accent/[.08] p-3 leading-5 text-accent/80">Add {formatMoney(100 - subtotal)} more for complimentary delivery.</p>}
+              {subtotal > 0 && subtotal < 100 && <p className="rounded-xl bg-accent/[.08] p-3 leading-5 text-accent/80">Add {formatMoney(subtractMoney(100, subtotal))} more for complimentary delivery.</p>}
               <div className="my-4 border-t border-white/[.09]" />
-              <div className="flex justify-between text-sm font-bold"><span>Total</span><span>{formatMoney(subtotal + shipping)}</span></div>
+              <div className="flex justify-between text-sm font-bold"><span>Total</span><span>{formatMoney(addMoney(subtotal, shipping))}</span></div>
               <p className="pt-1 text-[10px] text-[#7f818e]">Taxes calculated at checkout.</p>
             </div>
             <Link href="/checkout" className="button-primary mt-6 w-full">Continue to checkout <ArrowRight size={15} /></Link>

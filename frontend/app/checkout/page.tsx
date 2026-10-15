@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Check, CreditCard, MapPin, ShieldCheck, Shopping
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { api, CartLine, getCart, getSavedAddresses, getToken, notify, SavedAddress, saveCart, syncCartFromServer } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { addMoney, festivalPrice, formatMoney, multiplyMoney, subtractMoney, sumMoney } from "@/lib/catalog";
 
 const steps = ["Your bag", "Delivery", "Payment", "Confirmed"];
 export default function Checkout() {
@@ -32,10 +32,13 @@ export default function Checkout() {
       }
     }).catch((err: unknown) => setError(err instanceof Error ? err.message : "Saved addresses could not be loaded."));
   }, []);
-  const subtotal = cart.reduce((sum, item) => sum + festivalPrice(item.product) * item.quantity, 0);
-  const savings = cart.reduce((sum, item) => sum + (item.product.price - festivalPrice(item.product)) * item.quantity, 0);
+  const subtotal = sumMoney(cart.map((item) => multiplyMoney(festivalPrice(item.product), item.quantity)));
+  const savings = subtractMoney(
+    sumMoney(cart.map((item) => multiplyMoney(item.product.price, item.quantity))),
+    subtotal,
+  );
   const shipping = subtotal >= 100 || !subtotal ? 0 : 7.95;
-  const total = subtotal + shipping;
+  const total = addMoney(subtotal, shipping);
   const next = async (event: FormEvent) => {
     event.preventDefault(); setError("");
     if (step === 1) {
@@ -73,7 +76,7 @@ export default function Checkout() {
         <div className="panel p-5 sm:p-7">
           <div className="mb-6 flex items-center gap-2 text-sm font-semibold">{step === 1 ? <><MapPin size={16} className="text-accent" /> Delivery details</> : step === 2 ? <><CreditCard size={16} className="text-accent" /> Payment method</> : <><ShoppingBag size={16} className="text-accent" /> Review your bag</>}</div>
             <div key={step}>
-              {step === 0 && <div className="space-y-3">{cart.map((item) => <div key={item.product.pid} className="flex items-center justify-between border-b border-white/[.07] pb-3 text-xs"><span className="text-[#c4c2ce]">{item.quantity} × {item.product.name}</span><span>{formatMoney(festivalPrice(item.product) * item.quantity)}</span></div>)}<button onClick={() => setStep(1)} className="button-primary mt-5">Add delivery details <ArrowRight size={15} /></button></div>}
+              {step === 0 && <div className="space-y-3">{cart.map((item) => <div key={item.product.pid} className="flex items-center justify-between border-b border-white/[.07] pb-3 text-xs"><span className="text-[#c4c2ce]">{item.quantity} × {item.product.name}</span><span>{formatMoney(multiplyMoney(festivalPrice(item.product), item.quantity))}</span></div>)}<button onClick={() => setStep(1)} className="button-primary mt-5">Add delivery details <ArrowRight size={15} /></button></div>}
               {step === 1 && <form onSubmit={(event) => void next(event)} className="grid gap-3 sm:grid-cols-2">
                 {savedAddresses.length > 0 && <label className="text-[10px] text-[#aaa8b5] sm:col-span-2">Use a saved address<select className="field mt-1.5 !text-xs" value={selectedAddressId} onChange={(event) => {
                   setSelectedAddressId(event.target.value);

@@ -15,7 +15,19 @@ export const editorialCategories = [
 ];
 
 export const formatMoney = (value: number) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value);
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 })
+    .format(fromMinorUnits(toMinorUnits(value)));
+
+export const toMinorUnits = (value: number) => Math.round(value * 100);
+export const fromMinorUnits = (value: number) => value / 100;
+export const addMoney = (...values: number[]) =>
+  fromMinorUnits(values.reduce((total, value) => total + toMinorUnits(value), 0));
+export const sumMoney = (values: number[]) =>
+  fromMinorUnits(values.reduce((total, value) => total + toMinorUnits(value), 0));
+export const subtractMoney = (left: number, right: number) =>
+  fromMinorUnits(toMinorUnits(left) - toMinorUnits(right));
+export const multiplyMoney = (value: number, quantity: number) =>
+  fromMinorUnits(toMinorUnits(value) * quantity);
 
 export function productDisplayName(product: Pick<Product, "name">) {
   return /\bwatch\b/i.test(product.name) && !/\bsmartwatch\b/i.test(product.name)
@@ -24,7 +36,7 @@ export function productDisplayName(product: Pick<Product, "name">) {
 }
 
 export function festivalPrice(product: Pick<Product, "price"> & Partial<Pick<Product, "festival_price">>) {
-  return product.festival_price ?? Math.round((product.price * 0.8 + Number.EPSILON) * 100) / 100;
+  return product.festival_price ?? fromMinorUnits(Math.round(toMinorUnits(product.price) * 0.8));
 }
 
 export function enrich(product: Product): ProductView {

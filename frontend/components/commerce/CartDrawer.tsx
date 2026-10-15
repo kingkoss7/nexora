@@ -4,7 +4,7 @@ import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CartLine, getCart, notify, persistCart, productImage } from "@/lib/api";
-import { festivalPrice, formatMoney } from "@/lib/catalog";
+import { addMoney, festivalPrice, formatMoney, multiplyMoney, subtractMoney, sumMoney } from "@/lib/catalog";
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -30,8 +30,11 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
     persistCart(next);
     notify("Order updated");
   };
-  const subtotal = cart.reduce((sum, line) => sum + festivalPrice(line.product) * line.quantity, 0);
-  const savings = cart.reduce((sum, line) => sum + (line.product.price - festivalPrice(line.product)) * line.quantity, 0);
+  const subtotal = sumMoney(cart.map((line) => multiplyMoney(festivalPrice(line.product), line.quantity)));
+  const savings = subtractMoney(
+    sumMoney(cart.map((line) => multiplyMoney(line.product.price, line.quantity))),
+    subtotal,
+  );
   const shipping = subtotal >= 100 || !subtotal ? 0 : 7.95;
 
   return (
@@ -83,8 +86,8 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                             <button aria-label="Increase" onClick={() => update(cart.map((item) => item.product.pid === line.product.pid ? { ...item, quantity: Math.min(item.product.stock, item.quantity + 1) } : item))}><Plus size={12} /></button>
                           </div>
                           <span className="text-right">
-                            <span className="block text-sm font-bold text-accent">{formatMoney(festivalPrice(line.product) * line.quantity)}</span>
-                            <span className="block text-[10px] text-muted line-through">{formatMoney(line.product.price * line.quantity)}</span>
+                            <span className="block text-sm font-bold text-accent">{formatMoney(multiplyMoney(festivalPrice(line.product), line.quantity))}</span>
+                            <span className="block text-[10px] text-muted line-through">{formatMoney(multiplyMoney(line.product.price, line.quantity))}</span>
                           </span>
                         </div>
                       </div>
@@ -100,7 +103,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                   <div className="flex justify-between"><span>Subtotal</span><span className="text-white">{formatMoney(subtotal)}</span></div>
                   <div className="flex justify-between text-[#36c98f]"><span>Festival savings</span><span>−{formatMoney(savings)}</span></div>
                   <div className="flex justify-between"><span>Shipping</span><span>{shipping ? formatMoney(shipping) : "Complimentary"}</span></div>
-                  <div className="flex justify-between border-t border-white/8 pt-3 text-sm font-bold text-white"><span>Total</span><span className="text-accent">{formatMoney(subtotal + shipping)}</span></div>
+                  <div className="flex justify-between border-t border-white/8 pt-3 text-sm font-bold text-white"><span>Total</span><span className="text-accent">{formatMoney(addMoney(subtotal, shipping))}</span></div>
                 </div>
                 <Link href="/checkout" onClick={onClose} className="button-primary mt-4 w-full">Checkout</Link>
                 <Link href="/cart" onClick={onClose} className="mt-3 block text-center text-[11px] text-muted hover:text-white">View full bag</Link>
