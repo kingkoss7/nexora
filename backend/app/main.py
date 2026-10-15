@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, Query, Request
+from fastapi import FastAPI, Depends, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
@@ -315,11 +315,30 @@ def delete_product(pid: int, db: Session = Depends(get_db), _=Depends(admin_user
     db.delete(p); db.commit()
 
 @app.post("/orders", response_model=s.OrderOut, status_code=201)
-async def checkout(body: s.OrderIn, db: Session = Depends(get_db), user: m.User = Depends(current_user)):
+async def checkout(
+    body: s.OrderIn,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+    user: m.User = Depends(current_user),
+):
+    if idempotency_key is not None:
+        idempotency_key = idempotency_key.strip()
+        if not idempotency_key or len(idempotency_key) > 100:
+            raise HTTPException(422, "Idempotency-Key must contain 1 to 100 characters")
+        existing_order = db.scalar(
+            select(m.Order).where(
+                m.Order.user_uid == user.uid,
+                m.Order.idempotency_key == idempotency_key,
+            )
+        )
+        if existing_order is not None:
+            return existing_order
+
     address = body.address.model_dump(exclude={"label"})
     order = m.Order(
         user_uid=user.uid,
         total=0,
+        idempotency_key=idempotency_key,
         delivery_recipient_name=address["recipient_name"],
         delivery_phone=address["phone"],
         delivery_address_line1=address["address_line1"],
@@ -333,8 +352,9 @@ async def checkout(body: s.OrderIn, db: Session = Depends(get_db), user: m.User 
         product_pids = [item.product_pid for item in body.items]
         if len(product_pids) != len(set(product_pids)):
             raise HTTPException(422, "A product can only appear once in an order")
-        for it in body.items:
-            p = db.get(m.Product, it.product_pid)
+        # Lock in stable PID order so concurrent checkouts cannot oversell stock.
+        for it in sorted(body.items, key=lambda item: item.product_pid):
+            p = db.scalar(select(m.Product).where(m.Product.pid == it.product_pid).with_for_update())
             if not p: raise HTTPException(404, f"Product {it.product_pid} not found")
             if p.stock < it.quantity: raise HTTPException(409, f"Insufficient stock for {p.name}")
             p.stock -= it.quantity
@@ -355,7 +375,21 @@ async def checkout(body: s.OrderIn, db: Session = Depends(get_db), user: m.User 
             cart.status = "converted"
         db.commit(); db.refresh(order)
     except HTTPException:
-        db.rollback(); raise
+        db.rollback()
+        raise
+    except IntegrityError:
+        db.rollback()
+        # A concurrent retry may have committed the same idempotency key first.
+        if idempotency_key:
+            existing_order = db.scalar(
+                select(m.Order).where(
+                    m.Order.user_uid == user.uid,
+                    m.Order.idempotency_key == idempotency_key,
+                )
+            )
+            if existing_order is not None:
+                return existing_order
+        raise HTTPException(409, "The order could not be saved; please retry safely")
     return order
 
 @app.get("/orders", response_model=list[s.OrderOut])
