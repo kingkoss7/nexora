@@ -34,7 +34,7 @@ function money(value) {
 }
 function imageFor(product) {
   const name = `${product.name} ${product.category}`.toLowerCase();
-  const photos: [RegExp, string][] = [
+  const photos = [
     [/laptop|computer/, "1498049794561-7780e7231661"],
     [/headphone|earbud/, "1505740420928-5e560c06d30e"],
     [/keyboard/, "1517336714731-489689fd1ca8"],
