@@ -1,24 +1,13 @@
-<script setup lang="ts">
+<script setup>
 import { computed, onMounted, ref } from "vue";
 
-type Product = {
-  pid: number;
-  name: string;
-  description: string;
-  category: string;
-  price: number;
-  stock: number;
-  festival_discount_percent: number;
-  festival_price: number;
-};
-
 const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-const products = ref<Product[]>([]);
+const products = ref([]);
 const loading = ref(true);
 const error = ref("");
 const search = ref("");
 const selectedCategory = ref("All");
-const cart = ref<Record<number, number>>({});
+const cart = ref({});
 const cartOpen = ref(false);
 
 const categories = computed(() => [
@@ -40,10 +29,10 @@ const cartItems = computed(() => products.value.filter((product) => cart.value[p
 })));
 const cartTotal = computed(() => cartItems.value.reduce((total, item) => total + item.festival_price * item.quantity, 0));
 
-function money(value: number) {
+function money(value) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 }
-function imageFor(product: Product) {
+function imageFor(product) {
   const name = `${product.name} ${product.category}`.toLowerCase();
   const photos: [RegExp, string][] = [
     [/laptop|computer/, "1498049794561-7780e7231661"],
@@ -60,12 +49,12 @@ function imageFor(product: Product) {
   const id = photos.find(([pattern]) => pattern.test(name))?.[1] || "1498049794561-7780e7231661";
   return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=80`;
 }
-function addToCart(product: Product) {
+function addToCart(product) {
   if (product.stock < 1) return;
   cart.value = { ...cart.value, [product.pid]: Math.min(product.stock, (cart.value[product.pid] || 0) + 1) };
   cartOpen.value = true;
 }
-function changeQuantity(pid: number, quantity: number) {
+function changeQuantity(pid, quantity) {
   const next = { ...cart.value };
   if (quantity < 1) delete next[pid];
   else next[pid] = quantity;
@@ -77,7 +66,7 @@ async function loadProducts() {
   try {
     const response = await fetch(`${apiBase}/products?size=100`);
     if (!response.ok) throw new Error(`The product service returned ${response.status}.`);
-    products.value = await response.json() as Product[];
+    products.value = await response.json();
   } catch {
     error.value = "Could not connect to the NEXORA API. Check that the FastAPI backend is running and VITE_API_URL is correct.";
   } finally {
