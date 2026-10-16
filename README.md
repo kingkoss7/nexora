@@ -3,7 +3,7 @@
 A lightweight local e-commerce app built with a database-first structure.
 
 ## Stack
-- Frontend (new simplified version): Vue 3, TypeScript, Vite, Tailwind CSS 4
+- Frontend (new simplified version): Vue 3, JavaScript, Vite, Tailwind CSS 4
 - Legacy frontend (retained during migration): Next.js, React, TypeScript, Tailwind CSS
 - Backend: FastAPI, SQLAlchemy, PostgreSQL, JWT authentication
 - Database: PostgreSQL with Alembic migrations
