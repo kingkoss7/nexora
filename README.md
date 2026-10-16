@@ -3,10 +3,13 @@
 A lightweight local e-commerce app built with a database-first structure.
 
 ## Stack
-- Frontend: Next.js, React, TypeScript, Tailwind
-- Backend: FastAPI, SQLAlchemy, PostgreSQL, JWT auth
+- Frontend (new simplified version): Vue 3, TypeScript, Vite, Tailwind CSS 4
+- Legacy frontend (retained during migration): Next.js, React, TypeScript, Tailwind CSS
+- Backend: FastAPI, SQLAlchemy, PostgreSQL, JWT authentication
 - Database: PostgreSQL with Alembic migrations
 - Tests: Pytest
+
+The Vue frontend is a compact storefront prototype connected to the existing API. The original Next.js frontend remains unchanged until required account, checkout, wishlist, order-history, and admin flows are migrated and tested.
 
 ## Local setup
 Use Python 3.12+ and PostgreSQL 16+.
@@ -26,37 +29,50 @@ SECRET_KEY=replace_with_a_long_random_secret
 SEED_DEMO_DATA=false
 ```
 
-3. Install dependencies and run migrations:
+3. Install backend dependencies and run migrations:
 
 ```powershell
 python -m venv venv
-.\venv\Scripts\python.exe -m pip install -r requirements.txt
-.\venv\Scripts\python.exe -m alembic upgrade head
+.\\venv\\Scripts\\python.exe -m pip install -r requirements.txt
+.\\venv\\Scripts\\python.exe -m alembic upgrade head
 ```
 
 4. Create the admin user:
 
 ```powershell
-.\venv\Scripts\python.exe -m app.bootstrap_admin --email admin@example.com
+.\\venv\\Scripts\\python.exe -m app.bootstrap_admin --email admin@example.com
 ```
 
 5. Start the API:
 
 ```powershell
-.\venv\Scripts\python.exe -m uvicorn app.main:app --reload
+.\\venv\\Scripts\\python.exe -m uvicorn app.main:app --reload
 ```
 
-6. Start the storefront in another terminal:
+6. Start the Vue storefront in another terminal:
 
 ```powershell
-cd frontend
+cd frontend-vue
+Copy-Item .env.example .env
 npm install
 npm run dev
 ```
 
-The app is expected to run locally at:
+The Vue development server uses port 3000 to match the existing FastAPI CORS defaults:
 - API: http://localhost:8000
-- Frontend: http://localhost:3000
+- Vue frontend: http://localhost:3000
+
+To run the retained Next.js frontend instead, use `cd frontend`, then `npm install` and `npm run dev`.
+
+## Vue frontend scope
+- Loads products from the existing `GET /products` API.
+- Product search and category filters.
+- Responsive product cards with stock and price display.
+- Session-only shopping bag with quantity controls.
+- Loading, API-error, empty, and out-of-stock states.
+- No animations.
+
+The simplified Vue frontend does not yet include authentication, persistent cart synchronization, checkout, wishlist, order history, or admin tools. The backend and database were not changed.
 
 ## Database tables
 The current schema has exactly 10 application tables, defined in `backend/app/models.py` and managed by Alembic:
@@ -86,5 +102,5 @@ This project is intentionally kept simple and local-first. There is no Docker or
 ## Testing
 ```powershell
 cd backend
-.\venv\Scripts\python.exe -m pytest
+.\\venv\\Scripts\\python.exe -m pytest
 ```
