@@ -3,22 +3,22 @@
 :root {
   color-scheme: dark;
   font-family: "DM Sans", Arial, sans-serif;
-  color: #F0F6FF;
-  background: #07111F;
+  color: #F7F1FF;
+  background: #100B1B;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --surface: #101F33;
-  --surface-raised: #172B45;
-  --border: #263D59;
-  --muted: #9EB1CB;
-  --gold: #5DA9FF;
-  --gold-light: #5DA9FF;
-  --gold-deep: #397FC7;
-  --ink: #07111F;
-  --graphite: #101F33;
+  --surface: #1C1430;
+  --surface-raised: #291D40;
+  --border: #3B2D56;
+  --muted: #B6A9CC;
+  --gold: #C3A0FF;
+  --gold-light: #C3A0FF;
+  --gold-deep: #9470D1;
+  --ink: #100B1B;
+  --graphite: #1C1430;
   --success: #74C69D;
   --danger: #F08080;
-  --accent: #5DA9FF;
+  --accent: #C3A0FF;
 }
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--ink); scroll-behavior: smooth; }
@@ -226,90 +226,88 @@ hr { border: 0; border-top: 1px solid var(--border); }
 }
 
 
-/* NEXORA Navy & Electric Blue premium theme */
-html { background: #07111F; }
+/* NEXORA Royal Purple premium theme */
+html { background: #100B1B; }
 body {
-  color: #F0F6FF;
-  background: radial-gradient(ellipse at 50% -24rem, rgb(93 169 255 / 13%), transparent 60%), #07111F;
+  color: #F7F1FF;
+  background: radial-gradient(ellipse at 50% -24rem, rgb(195 160 255 / 14%), transparent 60%), #100B1B;
 }
-::selection { background: rgb(93 169 255 / 35%); color: #F0F6FF; }
-:focus-visible { outline-color: #5DA9FF; }
+::selection { background: rgb(195 160 255 / 35%); color: #F7F1FF; }
+:focus-visible { outline-color: #C3A0FF; }
 .site-header {
-  border-bottom-color: rgb(93 169 255 / 20%);
-  background: rgb(7 17 31 / 93%);
+  border-bottom-color: rgb(195 160 255 / 20%);
+  background: rgb(16 11 27 / 93%);
 }
-.nav-links a:hover, .nav-links button:hover { background: rgb(93 169 255 / 10%); color: #5DA9FF; }
+.nav-links a:hover, .nav-links button:hover { background: rgb(195 160 255 / 10%); color: #C3A0FF; }
 .nav-links .button, .button {
-  border-color: #5DA9FF;
-  background: #5DA9FF;
-  color: #07111F;
+  border-color: #C3A0FF;
+  background: #C3A0FF;
+  color: #1A102A;
 }
 .nav-links .button:hover, .button:hover {
-  border-color: #5DA9FF;
-  background: #5DA9FF;
-  color: #07111F;
-  box-shadow: 0 8px 28px rgb(93 169 255 / 20%);
+  border-color: #C3A0FF;
+  background: #C3A0FF;
+  color: #1A102A;
+  box-shadow: 0 8px 28px rgb(195 160 255 / 20%);
 }
 .button.secondary {
-  border-color: #263D59;
-  background: #101F33;
-  color: #F0F6FF;
+  border-color: #3B2D56;
+  background: #1C1430;
+  color: #F7F1FF;
 }
-.button.secondary:hover { border-color: #5DA9FF; background: rgb(93 169 255 / 10%); color: #5DA9FF; }
+.button.secondary:hover { border-color: #C3A0FF; background: rgb(195 160 255 / 10%); color: #C3A0FF; }
 .storefront-intro {
-  border-color: rgb(93 169 255 / 30%);
+  border-color: rgb(195 160 255 / 30%);
   background:
-    radial-gradient(ellipse at 80% 15%, rgb(93 169 255 / 18%), transparent 35%),
-    radial-gradient(ellipse at 15% 110%, rgb(93 169 255 / 8%), transparent 45%),
-    linear-gradient(120deg, #101F33 0%, #0B192B 55%, #07111F 100%);
+    radial-gradient(ellipse at 80% 15%, rgb(195 160 255 / 18%), transparent 35%),
+    radial-gradient(ellipse at 15% 110%, rgb(195 160 255 / 8%), transparent 45%),
+    linear-gradient(120deg, #1C1430 0%, #171027 55%, #100B1B 100%);
   box-shadow: 0 28px 90px rgb(0 0 0 / 34%), inset 0 1px rgb(255 255 255 / 3%);
 }
 .storefront-intro::after {
-  border-color: rgb(93 169 255 / 14%);
-  box-shadow: 0 0 0 2rem rgb(93 169 255 / 3%), 0 0 0 4rem rgb(93 169 255 / 2%);
+  border-color: rgb(195 160 255 / 14%);
+  box-shadow: 0 0 0 2rem rgb(195 160 255 / 3%), 0 0 0 4rem rgb(195 160 255 / 2%);
 }
-.intro-mark { color: #5DA9FF; }
+.intro-mark { color: #C3A0FF; }
 .intro-mark span {
-  border-color: rgb(93 169 255 / 55%);
-  background: radial-gradient(circle at 50% 42%, rgb(93 169 255 / 19%), #07111F 69%);
-  box-shadow: 0 0 90px rgb(93 169 255 / 12%), inset 0 0 60px rgb(93 169 255 / 6%);
+  border-color: rgb(195 160 255 / 55%);
+  background: radial-gradient(circle at 50% 42%, rgb(195 160 255 / 19%), #100B1B 69%);
+  box-shadow: 0 0 90px rgb(195 160 255 / 12%), inset 0 0 60px rgb(195 160 255 / 6%);
 }
-.intro-mark span::after { border-color: rgb(93 169 255 / 18%); }
-.eyebrow, .category, .progress { color: #5DA9FF; }
-.storefront-intro .eyebrow::before { background: #5DA9FF; }
+.intro-mark span::after { border-color: rgb(195 160 255 / 18%); }
+.eyebrow, .category, .progress { color: #C3A0FF; }
+.storefront-intro .eyebrow::before { background: #C3A0FF; }
 .field {
-  border-color: #263D59;
-  background: #101F33;
-  color: #F0F6FF;
+  border-color: #3B2D56;
+  background: #1C1430;
+  color: #F7F1FF;
 }
-.field::placeholder { color: #9EB1CB; }
-.field:focus { border-color: #5DA9FF; box-shadow: 0 0 0 3px rgb(93 169 255 / 15%); }
-.label { color: #F0F6FF; }
+.field::placeholder { color: #B6A9CC; }
+.field:focus { border-color: #C3A0FF; box-shadow: 0 0 0 3px rgb(195 160 255 / 15%); }
+.label { color: #F7F1FF; }
 .panel {
-  border-color: #263D59;
-  background: linear-gradient(145deg, rgb(255 255 255 / 2.5%), transparent 65%), #172B45;
+  border-color: #3B2D56;
+  background: linear-gradient(145deg, rgb(255 255 255 / 2.5%), transparent 65%), #291D40;
 }
 .product-card {
-  border-color: #263D59;
-  background: linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 60%), #172B45;
+  border-color: #3B2D56;
+  background: linear-gradient(145deg, rgb(255 255 255 / 2%), transparent 60%), #291D40;
 }
-.product-card::before { background: linear-gradient(90deg, transparent, #5DA9FF, transparent); }
-.product-card:hover { border-color: #397FC7; background: linear-gradient(145deg, rgb(93 169 255 / 7%), transparent 62%), #172B45; }
-.product-card .row strong { color: #5DA9FF; }
-.product-card .small.muted { border-top-color: rgb(158 177 203 / 12%); }
-.toolbar .field:hover, .field:hover { border-color: #397FC7; }
+.product-card::before { background: linear-gradient(90deg, transparent, #C3A0FF, transparent); }
+.product-card:hover { border-color: #9470D1; background: linear-gradient(145deg, rgb(195 160 255 / 7%), transparent 62%), #291D40; }
+.product-card .row strong { color: #C3A0FF; }
+.product-card .small.muted { border-top-color: rgb(182 169 204 / 12%); }
+.toolbar .field:hover, .field:hover { border-color: #9470D1; }
 .storefront-highlights {
-  border-color: #263D59;
-  background: linear-gradient(110deg, rgb(93 169 255 / 4%), transparent), #101F33;
+  border-color: #3B2D56;
+  background: linear-gradient(110deg, rgb(195 160 255 / 4%), transparent), #1C1430;
 }
-.highlight-item + .highlight-item { border-left-color: #263D59; }
+.highlight-item + .highlight-item { border-left-color: #3B2D56; }
 .highlight-icon {
-  border-color: rgb(93 169 255 / 28%);
-  background: rgb(93 169 255 / 10%);
-  color: #5DA9FF;
+  border-color: rgb(195 160 255 / 28%);
+  background: rgb(195 160 255 / 10%);
+  color: #C3A0FF;
 }
-.error { border-color: #79383A; background: #291516; color: #FFC6C6; }
-.success { border-color: #315C48; background: #14231B; color: #B4E8CB; }
 @media (max-width: 760px) {
-  .highlight-item + .highlight-item { border-left: 0; border-top: 1px solid #263D59; }
+  .highlight-item + .highlight-item { border-left: 0; border-top: 1px solid #3B2D56; }
 }
