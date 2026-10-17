@@ -1,90 +1,84 @@
-# NEXORA E-Commerce
+# NEXORA Database Commerce Project
 
-A lightweight local e-commerce app built with a database-first structure.
+A local database-focused commerce mini-project. The frontend uses browser-native
+HTML, CSS and JavaScript with no frontend framework, dependencies, package manager
+or build step. The API remains FastAPI with SQLAlchemy and Pydantic, backed by
+PostgreSQL and Alembic.
 
-## Stack
-- Frontend: Next.js, React, TypeScript, Tailwind
-- Backend: FastAPI, SQLAlchemy, PostgreSQL, JWT auth
-- Database: PostgreSQL with Alembic migrations
-- Tests: Pytest
+## Requirements
 
-## Local setup
-Use Python 3.12+ and PostgreSQL 16+.
+- Python 3.12+
+- PostgreSQL 16+
 
-1. Create the backend environment file:
+## Backend setup
+
+From the repository root, create the backend environment file:
+
+```powershell
+Copy-Item backend\.env.example backend\.env
+```
+
+Set `DATABASE_URL` and a random `SECRET_KEY` of at least 32 bytes in
+`backend\.env`. Install the API dependencies, apply migrations, create an admin,
+and start FastAPI:
 
 ```powershell
 cd backend
-Copy-Item .env.example .env
-```
-
-2. Update the database connection and secret in `backend/.env`:
-
-```env
-DATABASE_URL=postgresql+psycopg://postgres@localhost:5432/NEXORA_db
-SECRET_KEY=replace_with_a_long_random_secret
-SEED_DEMO_DATA=false
-```
-
-3. Install dependencies and run migrations:
-
-```powershell
 python -m venv venv
 .\venv\Scripts\python.exe -m pip install -r requirements.txt
 .\venv\Scripts\python.exe -m alembic upgrade head
-```
-
-4. Create the admin user:
-
-```powershell
 .\venv\Scripts\python.exe -m app.bootstrap_admin --email admin@example.com
-```
-
-5. Start the API:
-
-```powershell
 .\venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-6. Start the storefront in another terminal:
+The API runs at `http://localhost:8000`. Configure `CORS_ORIGINS` to allow the
+origin serving the frontend (default examples include localhost and 127.0.0.1
+on port 3000).
+
+## Frontend setup
+
+In a second terminal, serve the static files with Python:
 
 ```powershell
 cd frontend
-npm install
-npm run dev
+python -m http.server 3000 --bind 127.0.0.1
 ```
 
-The app is expected to run locally at:
-- API: http://localhost:8000
-- Frontend: http://localhost:3000
-
-## Database tables
-The current schema has exactly 10 application tables, defined in `backend/app/models.py` and managed by Alembic:
-- users
-- products
-- carts
-- cart_items
-- wishlists
-- wishlist_items
-- addresses
-- orders
-- order_items
-- payments
-
-Primary keys are named for their tables: `users.uid`, `products.pid`, `carts.cid`,
-`cart_items.cart_item_id`, `wishlists.wid`, `wishlist_items.wishlist_item_id`,
-`addresses.address_id`, `orders.oid`, `order_items.order_item_id`, and
-`payments.payment_id`. Foreign-key columns name the referenced key, for example
-`orders.user_uid`, `cart_items.cart_cid` / `cart_items.product_pid`, and
-`payments.order_oid`. Alembic revision `0007_descriptive_key_names` renames the
-existing columns and constraints without discarding table data.
-
-Delivery details are copied onto each order so order history stays accurate if a saved address changes. Checkout records cash-on-delivery as pending; it is marked paid when the admin marks the order delivered. Order statuses follow `placed → packed → shipped → delivered`; an order may be cancelled while placed or packed.
-
-This project is intentionally kept simple and local-first. There is no Docker or remote deployment setup. Login rate limiting is held in the running API process and resets when the API restarts.
+Open `http://127.0.0.1:3000`. The API base URL is `http://localhost:8000`, set
+once at the beginning of `frontend\app.js`. To use a different API URL, change
+that constant and include the frontend origin in backend `CORS_ORIGINS`.
 
 ## Testing
+
+Run the backend tests:
+
 ```powershell
 cd backend
 .\venv\Scripts\python.exe -m pytest
 ```
+
+The browser frontend has no build or package installation. Verify its routes and
+API-backed workflows while FastAPI and PostgreSQL are running.
+
+## Core workflows
+
+- Browse, search, filter and sort products from the database.
+- Register and sign in using the existing bearer-token authentication.
+- Manage a database-backed cart and place cash-on-delivery orders with delivery
+  details.
+- Review order history, delivery progress and payment status.
+- Admin users can create, edit and delete products and advance valid order
+  statuses.
+
+The API calculates order totals and validates inventory. Online card payments
+are not enabled.
+
+## Database
+
+Backend models and Alembic history remain in `backend/app/` and `backend/alembic/`.
+Do not run migrations against a database unless you intend to apply them.
+Revision `0008_remove_wishlists` exists in the current project; applying it drops
+the optional wishlist tables and their data.
+
+The current application models are users, products, carts, cart items, addresses,
+orders, order items and payments.

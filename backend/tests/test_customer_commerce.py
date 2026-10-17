@@ -19,17 +19,10 @@ def test_persistent_customer_commerce():
         products = client.get("/products", params={"size": 100}).json()
         product_id = max(products, key=lambda item: item["stock"])["pid"]
         product = next(item for item in products if item["pid"] == product_id)
-        assert product["festival_discount_percent"] == 20
-        assert product["festival_price"] == round(product["price"] * 0.8, 2)
-
         assert client.get("/cart", headers=headers).json() == {"items": []}
         assert client.put("/cart", json={"items": [{"product_pid": product_id, "quantity": 2}]}, headers=headers).status_code == 200
         assert client.get("/cart", headers=headers).json()["items"][0]["quantity"] == 2
         assert client.put("/cart", json={"items": []}, headers=headers).json() == {"items": []}
-
-        assert client.put(f"/wishlist/{product_id}", headers=headers).status_code == 204
-        assert client.get("/wishlist", headers=headers).json()["items"][0]["pid"] == product_id
-        assert client.delete(f"/wishlist/{product_id}", headers=headers).status_code == 204
 
         address = {
             "label": "Test",
@@ -52,9 +45,9 @@ def test_persistent_customer_commerce():
             headers=headers,
         )
         assert order.status_code == 201
-        expected_total = round(product["festival_price"] + (7.95 if product["festival_price"] < 100 else 0), 2)
+        expected_total = round(product["price"] + (7.95 if product["price"] < 100 else 0), 2)
         assert order.json()["total"] == expected_total
-        assert order.json()["items"][0]["price"] == product["festival_price"]
+        assert order.json()["items"][0]["price"] == product["price"]
         with SessionLocal() as db:
             saved_order = db.scalar(select(m.Order).where(m.Order.oid == order.json()["oid"]))
             assert saved_order is not None

@@ -175,72 +175,6 @@ def replace_cart(body: s.CartReplace, db: Session = Depends(get_db), user: m.Use
         db.rollback()
         raise
 
-@app.get("/wishlist", response_model=s.WishlistOut)
-def get_wishlist(db: Session = Depends(get_db), user: m.User = Depends(current_user)):
-    wishlist = db.scalar(
-        select(m.Wishlist)
-        .where(m.Wishlist.user_uid == user.uid, m.Wishlist.name == "Favorites")
-        .options(selectinload(m.Wishlist.items).selectinload(m.WishlistItem.product))
-    )
-    return {"items": [item.product for item in wishlist.items] if wishlist else []}
-
-@app.put("/wishlist", status_code=204)
-def replace_wishlist(body: s.WishlistReplace, db: Session = Depends(get_db), user: m.User = Depends(current_user)):
-    if len(body.product_pids) != len(set(body.product_pids)) or any(product_pid < 1 for product_pid in body.product_pids):
-        raise HTTPException(422, "Wishlist product PIDs must be unique positive integers")
-    products_by_pid = {}
-    for product_pid in body.product_pids:
-        product = db.get(m.Product, product_pid)
-        if not product:
-            raise HTTPException(404, f"Product {product_pid} not found")
-        products_by_pid[product_pid] = product
-    wishlist = db.scalar(
-        select(m.Wishlist)
-        .where(m.Wishlist.user_uid == user.uid, m.Wishlist.name == "Favorites")
-        .options(selectinload(m.Wishlist.items))
-    )
-    if wishlist is None and body.product_pids:
-        wishlist = m.Wishlist(user_uid=user.uid, name="Favorites")
-        db.add(wishlist)
-        db.flush()
-    if wishlist:
-        requested = set(body.product_pids)
-        wishlist.items[:] = [item for item in wishlist.items if item.product_pid in requested]
-        current_ids = {item.product_pid for item in wishlist.items}
-        for product_pid, product in products_by_pid.items():
-            if product_pid not in current_ids:
-                wishlist.items.append(m.WishlistItem(product=product))
-    db.commit()
-
-@app.put("/wishlist/{product_pid}", status_code=204)
-def add_wishlist_item(product_pid: int, db: Session = Depends(get_db), user: m.User = Depends(current_user)):
-    product = db.get(m.Product, product_pid)
-    if not product:
-        raise HTTPException(404, "Product not found")
-    wishlist = db.scalar(
-        select(m.Wishlist)
-        .where(m.Wishlist.user_uid == user.uid, m.Wishlist.name == "Favorites")
-        .options(selectinload(m.Wishlist.items))
-    )
-    if wishlist is None:
-        wishlist = m.Wishlist(user_uid=user.uid, name="Favorites")
-        db.add(wishlist)
-        db.flush()
-    if not any(item.product_pid == product_pid for item in wishlist.items):
-        wishlist.items.append(m.WishlistItem(product_pid=product_pid))
-    db.commit()
-
-@app.delete("/wishlist/{product_pid}", status_code=204)
-def remove_wishlist_item(product_pid: int, db: Session = Depends(get_db), user: m.User = Depends(current_user)):
-    wishlist = db.scalar(
-        select(m.Wishlist)
-        .where(m.Wishlist.user_uid == user.uid, m.Wishlist.name == "Favorites")
-        .options(selectinload(m.Wishlist.items))
-    )
-    if wishlist:
-        wishlist.items[:] = [item for item in wishlist.items if item.product_pid != product_pid]
-        db.commit()
-
 @app.get("/addresses", response_model=list[s.AddressOut])
 def get_addresses(db: Session = Depends(get_db), user: m.User = Depends(current_user)):
     return db.scalars(
@@ -338,12 +272,12 @@ async def checkout(body: s.OrderIn, db: Session = Depends(get_db), user: m.User 
             if not p: raise HTTPException(404, f"Product {it.product_pid} not found")
             if p.stock < it.quantity: raise HTTPException(409, f"Insufficient stock for {p.name}")
             p.stock -= it.quantity
-            order.total += p.festival_price * it.quantity
+            order.total += p.price * it.quantity
             order.items.append(m.OrderItem(
                 product_pid=p.pid,
                 product_name=p.name,
                 quantity=it.quantity,
-                price=p.festival_price,
+                price=p.price,
             ))
         if order.total < 100:
             order.total += 7.95
@@ -385,19 +319,3 @@ async def set_status(oid: int, body: s.StatusIn, db: Session = Depends(get_db), 
         o.payment.status = "paid"
     db.commit(); db.refresh(o)
     return o
-
-@app.get("/admin/stats")
-def stats(db: Session = Depends(get_db), _=Depends(admin_user)):
-    top = db.execute(select(m.OrderItem.product_name, func.sum(m.OrderItem.quantity).label("sold"))
-                     .group_by(m.OrderItem.product_name).order_by(func.sum(m.OrderItem.quantity).desc()).limit(5)).all()
-    return {
-        "revenue": db.scalar(
-            select(func.coalesce(func.sum(m.Payment.amount), 0))
-            .where(m.Payment.status == "paid")
-        ),
-        "orders": db.scalar(select(func.count(m.Order.oid))),
-        "customers": db.scalar(select(func.count(m.User.uid)).where(m.User.role == "customer")),
-        "products": db.scalar(select(func.count(m.Product.pid))),
-        "low_stock": [{"pid": p.pid, "name": p.name, "stock": p.stock} for p in db.scalars(select(m.Product).where(m.Product.stock < 10))],
-        "top_products": [{"name": n, "sold": int(c)} for n, c in top],
-    }

@@ -34,8 +34,6 @@ class ProductIn(BaseModel):
 class ProductOut(ProductIn):
     model_config = ConfigDict(from_attributes=True)
     pid: int
-    festival_discount_percent: int
-    festival_price: float
 
 class CartItem(BaseModel):
     product_pid: int = Field(gt=0)
@@ -50,12 +48,6 @@ class CartLineOut(BaseModel):
 
 class CartOut(BaseModel):
     items: list[CartLineOut]
-
-class WishlistReplace(BaseModel):
-    product_pids: list[int] = Field(default_factory=list)
-
-class WishlistOut(BaseModel):
-    items: list[ProductOut]
 
 class AddressFields(BaseModel):
     label: str | None = Field(default=None, max_length=50)

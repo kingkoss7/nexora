@@ -13,8 +13,6 @@ def test_commerce_tables_use_descriptive_primary_and_foreign_keys():
         "products": "pid",
         "carts": "cid",
         "cart_items": "cart_item_id",
-        "wishlists": "wid",
-        "wishlist_items": "wishlist_item_id",
         "addresses": "address_id",
         "orders": "oid",
         "order_items": "order_item_id",
@@ -27,8 +25,6 @@ def test_commerce_tables_use_descriptive_primary_and_foreign_keys():
     foreign_keys = {
         "carts": {"user_uid": ("users", "uid")},
         "cart_items": {"cart_cid": ("carts", "cid"), "product_pid": ("products", "pid")},
-        "wishlists": {"user_uid": ("users", "uid")},
-        "wishlist_items": {"wishlist_wid": ("wishlists", "wid"), "product_pid": ("products", "pid")},
         "addresses": {"user_uid": ("users", "uid")},
         "orders": {"user_uid": ("users", "uid")},
         "order_items": {"order_oid": ("orders", "oid"), "product_pid": ("products", "pid")},
@@ -64,8 +60,6 @@ def test_flow():
         pid = max(available_products, key=lambda item: item["stock"])["pid"]
         product = c.get(f"/products/{pid}").json()
         assert product["pid"] == pid
-        assert product["festival_discount_percent"] == 20
-        assert product["festival_price"] == round(product["price"] * 0.8, 2)
         address = {
             "recipient_name": "Test Customer",
             "phone": "5550100",
@@ -81,21 +75,18 @@ def test_flow():
         )
         assert placed.status_code == 201
         assert placed.json()["status"] == "placed"
-        assert placed.json()["total"] == round(product["festival_price"] * 2, 2)
-        assert placed.json()["items"][0]["price"] == product["festival_price"]
+        assert placed.json()["total"] == round(product["price"] * 2, 2)
+        assert placed.json()["items"][0]["price"] == product["price"]
         assert c.post(
             "/orders",
             json={"items": [{"product_pid": pid, "quantity": 9999}], "address": address},
             headers=h,
         ).status_code == 409
-        assert c.get("/admin/stats", headers=h).status_code == 403
-
         adm = c.post("/auth/login", json={
             "email": os.environ["TEST_ADMIN_EMAIL"],
             "password": os.environ["TEST_ADMIN_PASSWORD"],
         }).json()["access_token"]
         admin_headers = {"Authorization": f"Bearer {adm}"}
-        assert c.get("/admin/stats", headers=admin_headers).json()["orders"] >= 1
         order_id = placed.json()["oid"]
         assert c.patch(
             f"/orders/{order_id}/status",

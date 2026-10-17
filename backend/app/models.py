@@ -3,12 +3,6 @@ from sqlalchemy import ForeignKey, String, Float, Integer, DateTime, CheckConstr
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
-FESTIVAL_DISCOUNT_PERCENT = 20
-
-
-def festival_price(price: float) -> float:
-    return round(price * (100 - FESTIVAL_DISCOUNT_PERCENT) / 100, 2)
-
 
 class User(Base):
     __tablename__ = "users"
@@ -30,14 +24,6 @@ class Product(Base):
     category: Mapped[str] = mapped_column(String(100), index=True, default="general")
     price: Mapped[float] = mapped_column(Float)
     stock: Mapped[int] = mapped_column(Integer, default=0)
-
-    @property
-    def festival_discount_percent(self) -> int:
-        return FESTIVAL_DISCOUNT_PERCENT
-
-    @property
-    def festival_price(self) -> float:
-        return festival_price(self.price)
 
 class Cart(Base):
     __tablename__ = "carts"
@@ -61,26 +47,6 @@ class CartItem(Base):
     cart_cid: Mapped[int] = mapped_column(ForeignKey("carts.cid", name="fk_cart_items_cart_cid_carts", ondelete="CASCADE"))
     product_pid: Mapped[int] = mapped_column(ForeignKey("products.pid", name="fk_cart_items_product_pid_products", ondelete="RESTRICT"))
     quantity: Mapped[int] = mapped_column(Integer)
-    added_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    product: Mapped[Product] = relationship()
-
-class Wishlist(Base):
-    __tablename__ = "wishlists"
-    __table_args__ = (UniqueConstraint("user_uid", "name", name="uq_wishlists_user_uid_name"),)
-    wid: Mapped[int] = mapped_column(primary_key=True)
-    user_uid: Mapped[int] = mapped_column(ForeignKey("users.uid", name="fk_wishlists_user_uid_users", ondelete="CASCADE"), index=True)
-    name: Mapped[str] = mapped_column(String(100), default="Favorites", server_default="Favorites")
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    items: Mapped[list["WishlistItem"]] = relationship(cascade="all, delete-orphan", lazy="selectin")
-
-class WishlistItem(Base):
-    __tablename__ = "wishlist_items"
-    __table_args__ = (
-        UniqueConstraint("wishlist_wid", "product_pid", name="uq_wishlist_items_wishlist_wid_product_pid"),
-    )
-    wishlist_item_id: Mapped[int] = mapped_column(primary_key=True)
-    wishlist_wid: Mapped[int] = mapped_column(ForeignKey("wishlists.wid", name="fk_wishlist_items_wishlist_wid_wishlists", ondelete="CASCADE"))
-    product_pid: Mapped[int] = mapped_column(ForeignKey("products.pid", name="fk_wishlist_items_product_pid_products", ondelete="CASCADE"))
     added_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     product: Mapped[Product] = relationship()
 
