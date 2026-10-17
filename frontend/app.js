@@ -94,6 +94,11 @@ async function showShop(id) {
       </div>
       <div class="intro-mark" aria-hidden="true"><span>N</span><small>BUILT FOR WHAT'S NEXT</small></div>
     </section>
+    <section class="storefront-highlights" aria-label="Shopping highlights">
+      <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">✳</span><div><strong>Thoughtfully selected</strong><span>Everyday technology and essentials</span></div></div>
+      <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">₹</span><div><strong>Clear pricing</strong><span>Prices displayed in Indian rupees</span></div></div>
+      <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">↗</span><div><strong>Database connected</strong><span>Browse the live product catalogue</span></div></div>
+    </section>
     <div class="section-heading" id="collection-heading"><div><p class="eyebrow">THE COLLECTION</p><h2>Shop products</h2></div>
       <p class="muted">Browse products stored in the NEXORA database.</p></div>
     <div class="toolbar"><input class="field" name="q" aria-label="Search products" placeholder="Search products">
