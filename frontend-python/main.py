@@ -102,8 +102,8 @@ def home():
                         with ui.row().classes("w-full items-center justify-between"):
                             ui.label(money(p["price"])).classes("text-xl font-bold")
                             ui.label(str(p["stock"]) + " in stock").style("color:" + MUTED + ";font-size:12px")
-                        ui.button("View details", on_click=lambda product=p: render_product(product["pid"]), icon="visibility").props("outline").classes("w-full")
-                        ui.button("Add to cart", on_click=lambda product=p: add_product(product, 1), icon="add_shopping_cart").props("unelevated").classes("w-full")
+                        ui.button("View details", on_click=lambda _=None, product=p: render_product(product["pid"]), icon="visibility").props("outline").classes("w-full")
+                        ui.button("Add to cart", on_click=lambda _=None, product=p: add_product(product, 1), icon="add_shopping_cart").props("unelevated").classes("w-full")
 
     def render_product(pid):
         p = api("GET", "/products/" + str(pid), auth=False)
@@ -111,7 +111,7 @@ def home():
             return
         reset_content()
         with content_box:
-            ui.button("Back to shop", on_click=render_shop, icon="arrow_back").props("flat")
+            ui.button("Back to shop", on_click=lambda: render_shop(), icon="arrow_back").props("flat")
             with ui.row().classes("w-full items-start gap-6"):
                 with ui.card().classes("w-full md:w-1/2 p-8 items-center justify-center"):
                     ui.icon("inventory_2", size="100px").style("color:" + ACCENT)
@@ -191,12 +191,12 @@ def home():
                     with ui.row().classes("w-full items-center"):
                         ui.icon("inventory_2", size="32px").style("color:" + ACCENT)
                         with ui.column().classes("grow gap-1"):
-                            ui.button(p["name"], on_click=lambda pid=p["pid"]: render_product(pid)).props("flat")
+                            ui.button(p["name"], on_click=lambda _=None, pid=p["pid"]: render_product(pid)).props("flat")
                             ui.label(money(p["price"]) + " each").style("color:" + MUTED)
-                        ui.button(icon="remove", on_click=lambda pid=p["pid"]: change_qty(pid, -1)).props("flat round")
+                        ui.button(icon="remove", on_click=lambda _=None, pid=p["pid"]: change_qty(pid, -1)).props("flat round")
                         ui.label(str(qty)).classes("font-bold")
-                        ui.button(icon="add", on_click=lambda pid=p["pid"]: change_qty(pid, 1)).props("flat round")
-                        ui.button(icon="delete_outline", on_click=lambda pid=p["pid"]: remove_item(pid)).props("flat round color=negative")
+                        ui.button(icon="add", on_click=lambda _=None, pid=p["pid"]: change_qty(pid, 1)).props("flat round")
+                        ui.button(icon="delete_outline", on_click=lambda _=None, pid=p["pid"]: remove_item(pid)).props("flat round color=negative")
                         ui.label(money(float(p["price"]) * qty)).classes("font-bold")
             ui.separator()
             ui.label("Subtotal: " + money(total)).classes("text-2xl font-bold")
@@ -340,8 +340,8 @@ def home():
                                 ui.badge("Default address", color="purple")
                         with ui.row():
                             if not a.get("is_default"):
-                                ui.button("Set default", on_click=lambda aid=a["address_id"]: set_default(aid)).props("outline")
-                            ui.button("Delete", on_click=lambda aid=a["address_id"]: delete_address(aid)).props("flat color=negative")
+                                ui.button("Set default", on_click=lambda _=None, aid=a["address_id"]: set_default(aid)).props("outline")
+                            ui.button("Delete", on_click=lambda _=None, aid=a["address_id"]: delete_address(aid)).props("flat color=negative")
             ui.button("View all orders", on_click=render_orders, icon="receipt_long").props("outline").classes("mt-3")
 
     def render_address_form():
@@ -471,9 +471,9 @@ def home():
                 ui.icon("diamond", size="28px").style("color:" + ACCENT)
                 ui.label("NEXORA").classes("brand text-2xl font-bold")
                 ui.label("STORE").style("color:" + MUTED + ";font-size:10px;letter-spacing:3px")
-                brand.on("click", render_shop)
+                brand.on("click", lambda: render_shop())
             with ui.row().classes("items-center gap-1"):
-                ui.button("Shop", on_click=render_shop, icon="storefront").props("flat")
+                ui.button("Shop", on_click=lambda: render_shop(), icon="storefront").props("flat")
                 ui.button("Cart (" + str(sum(x["quantity"] for x in cart["items"])) + ")", on_click=render_cart, icon="shopping_bag").props("flat")
                 if session["token"]:
                     ui.button("Account", on_click=render_account, icon="person").props("flat")
