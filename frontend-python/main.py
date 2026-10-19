@@ -62,7 +62,7 @@ def home():
         result = api("PUT", "/cart", {"items": lines})
         if result is not None:
             cart["items"] = result.get("items", [])
-            refresh_header.refresh()
+            refresh_nav.refresh()
             return True
         return False
 
@@ -164,7 +164,7 @@ def home():
                     if result is not None:
                         session["token"], session["role"] = result["access_token"], result.get("role", "customer")
                         load_cart()
-                        refresh_header.refresh()
+                        refresh_nav.refresh()
                         ui.notify("Signed in successfully.", type="positive")
                         render_shop()
                 ui.button("Continue", on_click=submit, icon="login").props("unelevated").classes("w-full mt-3")
@@ -460,18 +460,18 @@ def home():
 
     def sign_out():
         session["token"], session["role"], cart["items"] = "", "customer", []
-        refresh_header.refresh()
+        refresh_nav.refresh()
         ui.notify("Signed out.")
         render_shop()
 
-    @ui.refreshable
-    def refresh_header():
-        with ui.header().classes("items-center justify-between px-5 py-3").style("background:" + SURFACE + ";border-bottom:1px solid #3B2B56"):
-            with ui.row().classes("items-center gap-2 cursor-pointer") as brand:
-                ui.icon("diamond", size="28px").style("color:" + ACCENT)
-                ui.label("NEXORA").classes("brand text-2xl font-bold")
-                ui.label("STORE").style("color:" + MUTED + ";font-size:10px;letter-spacing:3px")
-                brand.on("click", lambda: render_shop())
+    with ui.header().classes("items-center justify-between px-5 py-3").style("background:" + SURFACE + ";border-bottom:1px solid #3B2B56"):
+        with ui.row().classes("items-center gap-2 cursor-pointer") as brand:
+            ui.icon("diamond", size="28px").style("color:" + ACCENT)
+            ui.label("NEXORA").classes("brand text-2xl font-bold")
+            ui.label("STORE").style("color:" + MUTED + ";font-size:10px;letter-spacing:3px")
+            brand.on("click", lambda: render_shop())
+        @ui.refreshable
+        def refresh_nav():
             with ui.row().classes("items-center gap-1"):
                 ui.button("Shop", on_click=lambda: render_shop(), icon="storefront").props("flat")
                 ui.button("Cart (" + str(sum(x["quantity"] for x in cart["items"])) + ")", on_click=render_cart, icon="shopping_bag").props("flat")
@@ -483,8 +483,7 @@ def home():
                     ui.button("Sign out", on_click=sign_out, icon="logout").props("flat")
                 else:
                     ui.button("Sign in", on_click=render_auth, icon="login").props("unelevated")
-
-    refresh_header()
+        refresh_nav()
     with ui.column().classes("w-full max-w-7xl mx-auto px-4 py-5 gap-5"):
         with ui.row().classes("w-full items-center justify-between rounded-2xl p-6 md:p-8").style("background:linear-gradient(115deg,#291D40,#1C1430 58%,#38244E);border:1px solid #493360"):
             with ui.column().classes("gap-2"):
