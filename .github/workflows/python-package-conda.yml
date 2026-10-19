@@ -50,6 +50,22 @@ jobs:
       - name: Smoke test NiceGUI storefront startup
         run: |
           (cd backend && nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/nexora-api.log 2>&1 &)
+          python - <<'PY'
+          import time
+          import urllib.error
+          import urllib.request
+
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen("http://127.0.0.1:8000/openapi.json", timeout=2) as response:
+                      if response.status == 200:
+                          break
+              except (urllib.error.URLError, TimeoutError, OSError):
+                  time.sleep(1)
+          else:
+              print(open("/tmp/nexora-api.log", encoding="utf-8").read())
+              raise SystemExit("FastAPI did not start successfully.")
+          PY
           NEXORA_API_URL=http://127.0.0.1:8000 PORT=3000 nohup python frontend-python/main.py > /tmp/nexora-ui.log 2>&1 &
           python - <<'PY'
           import time
@@ -58,7 +74,7 @@ jobs:
 
           for attempt in range(30):
               try:
-                  with urllib.request.urlopen("http://127.0.0.1:3000/", timeout=2) as response:
+                  with urllib.request.urlopen("http://127.0.0.1:3000/", timeout=5) as response:
                       if response.status == 200:
                           print("NiceGUI storefront returned HTTP 200.")
                           break
