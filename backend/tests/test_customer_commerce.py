@@ -57,3 +57,34 @@ def test_persistent_customer_commerce():
             assert saved_order.payment.status == "pending"
 
         assert client.delete(f"/addresses/{created_address.json()['address_id']}", headers=headers).status_code == 204
+
+def test_admin_delete_of_cart_referenced_product_returns_conflict():
+    with TestClient(app) as client:
+        email = f"{uuid.uuid4().hex}@example.com"
+        assert client.post(
+            "/auth/register",
+            json={"name": "Cart Customer", "email": email, "password": "secret1"},
+        ).status_code == 201
+        customer_token = client.post(
+            "/auth/login", json={"email": email, "password": "secret1"}
+        ).json()["access_token"]
+        customer_headers = {"Authorization": f"Bearer {customer_token}"}
+        product = client.get("/products", params={"size": 100}).json()[0]
+        assert client.put(
+            "/cart",
+            json={"items": [{"product_pid": product["pid"], "quantity": 1}]},
+            headers=customer_headers,
+        ).status_code == 200
+
+        admin_token = client.post(
+            "/auth/login",
+            json={"email": "admin@shop.com", "password": "test-only-admin-password"},
+        ).json()["access_token"]
+        response = client.delete(
+            f"/products/{product['pid']}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert response.status_code == 409
+        assert "referenced by a cart or order" in response.json()["detail"]
+        assert client.get("/products/" + str(product["pid"])).status_code == 200
+
