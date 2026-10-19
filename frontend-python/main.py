@@ -489,7 +489,7 @@ def home():
         with ui.row().classes("w-full items-center justify-between rounded-2xl p-6 md:p-8").style("background:linear-gradient(115deg,#291D40,#1C1430 58%,#38244E);border:1px solid #493360"):
             with ui.column().classes("gap-2"):
                 ui.label("THE NEW STANDARD").style("color:" + ACCENT + ";letter-spacing:3px;font-size:11px;font-weight:700")
-                ui.label("Technology. Lifestyle.\\nMade yours.").classes("text-3xl md:text-5xl font-bold").style("white-space:pre-line;line-height:1.08")
+                ui.label("Technology. Lifestyle.\nMade yours.").classes("text-3xl md:text-5xl font-bold").style("white-space:pre-line;line-height:1.08")
                 ui.label("A connected shopping experience powered by the NEXORA database.").style("color:" + MUTED)
                 ui.button("Explore collection", on_click=lambda: render_shop(), icon="arrow_forward").props("unelevated")
             ui.icon("auto_awesome", size="80px").style("color:" + ACCENT + ";opacity:.85")
