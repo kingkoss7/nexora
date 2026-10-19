@@ -47,6 +47,32 @@ jobs:
       - name: Validate Alembic migrations on a clean PostgreSQL database
         working-directory: backend
         run: python -m alembic upgrade head
+      - name: Smoke test NiceGUI storefront startup
+        run: |
+          (cd backend && nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/nexora-api.log 2>&1 &)
+          NEXORA_API_URL=http://127.0.0.1:8000 PORT=3000 nohup python frontend-python/main.py > /tmp/nexora-ui.log 2>&1 &
+          python - <<'PY'
+          import time
+          import urllib.error
+          import urllib.request
+
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen("http://127.0.0.1:3000/", timeout=2) as response:
+                      if response.status == 200:
+                          print("NiceGUI storefront returned HTTP 200.")
+                          break
+              except (urllib.error.URLError, TimeoutError, OSError):
+                  time.sleep(1)
+          else:
+              for path in ("/tmp/nexora-api.log", "/tmp/nexora-ui.log"):
+                  print(f"--- {path} ---")
+                  try:
+                      print(open(path, encoding="utf-8").read())
+                  except OSError:
+                      pass
+              raise SystemExit("NiceGUI storefront did not start successfully.")
+          PY
       - name: Run PostgreSQL-backed API tests
         working-directory: backend
         run: python -m pytest -q
