@@ -181,7 +181,7 @@ def home():
             items = load_cart()
             if not items:
                 ui.label("Your cart is empty.").style("color:" + MUTED)
-                ui.button("Explore products", on_click=render_shop, icon="storefront")
+                ui.button("Explore products", on_click=lambda: render_shop(), icon="storefront")
                 return
             total = 0
             for line in items:
@@ -234,7 +234,7 @@ def home():
             items = load_cart()
             if not items:
                 ui.label("Your cart is empty.")
-                ui.button("Shop now", on_click=render_shop)
+                ui.button("Shop now", on_click=lambda: render_shop())
                 return
             addresses = api("GET", "/addresses") or []
             ui.label("Delivery details").classes("text-xl font-bold")
@@ -428,13 +428,13 @@ def home():
                         with ui.column().classes("grow gap-0"):
                             ui.label(p["name"]).classes("font-bold")
                             ui.label(money(p["price"]) + " · " + str(p["stock"]) + " in stock").style("color:" + MUTED)
-                        def edit(product=p):
+                        def edit(_event=None, product=p):
                             editing["pid"] = product["pid"]
                             pname.value, pdesc.value = product["name"], product.get("description") or ""
                             pcat.value, price.value, stock.value = product["category"], product["price"], product["stock"]
                             form_title.text = "Editing: " + product["name"]
                             ui.notify("Product loaded into the form.")
-                        def delete(product=p):
+                        def delete(_event=None, product=p):
                             if api("DELETE", "/products/" + str(product["pid"])) is not None:
                                 ui.notify("Product deleted.", type="positive")
                                 render_admin()
@@ -452,7 +452,7 @@ def home():
                     choices = transitions.get(order["status"], [])
                     if choices:
                         select = ui.select(choices, value=choices[0], label="Next status").props("outlined")
-                        def update_status(oid=order["oid"], field=select):
+                        def update_status(_event=None, oid=order["oid"], field=select):
                             if api("PATCH", "/orders/" + str(oid) + "/status", {"status": field.value}) is not None:
                                 ui.notify("Order status updated.", type="positive")
                                 render_admin()
@@ -491,7 +491,7 @@ def home():
                 ui.label("THE NEW STANDARD").style("color:" + ACCENT + ";letter-spacing:3px;font-size:11px;font-weight:700")
                 ui.label("Technology. Lifestyle.\\nMade yours.").classes("text-3xl md:text-5xl font-bold").style("white-space:pre-line;line-height:1.08")
                 ui.label("A connected shopping experience powered by the NEXORA database.").style("color:" + MUTED)
-                ui.button("Explore collection", on_click=render_shop, icon="arrow_forward").props("unelevated")
+                ui.button("Explore collection", on_click=lambda: render_shop(), icon="arrow_forward").props("unelevated")
             ui.icon("auto_awesome", size="80px").style("color:" + ACCENT + ";opacity:.85")
         content_box = ui.column().classes("w-full gap-4")
         with ui.footer().classes("justify-center").style("background:" + BG + ";color:" + MUTED):
