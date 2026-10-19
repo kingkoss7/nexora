@@ -46,15 +46,30 @@ More detailed setup notes: [frontend-python/README.md](frontend-python/README.md
 
 ## Features in the Python UI
 
-- Royal Purple premium dark theme with responsive product cards.
-- Product browsing, search, category filtering and price sorting.
-- Registration and login using existing bearer-token authentication.
-- Database-backed cart, quantity updates and checkout.
-- Delivery address form and cash-on-delivery checkout.
-- Customer order history and payment status.
-- Admin product creation and valid order-status updates.
+- Royal Purple responsive storefront, product detail pages, search, category filtering and price sorting.
+- Registration and login using the existing bearer-token authentication.
+- Database-backed cart with quantity changes and stock checks.
+- Checkout with delivery details and cash-on-delivery payment.
+- Customer order history, payment status, account summary and saved-address management.
+- Admin product create/edit/delete controls and valid order-status transitions.
+- Inventory is rechecked and locked during checkout to reduce overselling under concurrent orders.
+- Product deletion returns a clear conflict if a cart or order still references that product.
 
-The backend still validates inventory and calculates order totals. Online card payments and wishlist routes are not provided by the current API. The Python UI is a first migration pass; test it against your configured database before presenting the project.
+The backend remains the source of truth for users, inventory, orders, totals and payment status. The current API supports cash on delivery only; wishlist routes and online card payments are not implemented. Run the automated checks and follow the final-demo checklist below before presenting.
+
+## Final demo checklist
+
+1. Start PostgreSQL, apply Alembic migrations and start FastAPI.
+2. Bootstrap your administrator account using the command above.
+3. Start NiceGUI in a second terminal and open http://127.0.0.1:3000.
+4. Browse products, test search/filter/sorting and open a product detail page.
+5. Register a customer, sign in, add items to the cart and change quantities.
+6. Add a saved address, place a COD order and verify it appears in order history.
+7. Sign in as admin, edit a product and move an order through allowed status transitions.
+8. Confirm the stock count changes after checkout and that a referenced product cannot be deleted.
+9. Run the backend tests from the backend folder with the configured PostgreSQL database.
+
+Do not use real customer data or real payment details in the classroom demo. Use demo products and test accounts.
 
 ## Tests
 
