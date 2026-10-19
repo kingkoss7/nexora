@@ -44,6 +44,9 @@ jobs:
           python -m pip install -r frontend-python/requirements.txt
       - name: Check Python syntax
         run: python -m compileall -q backend/app backend/tests frontend-python
+      - name: Validate Alembic migrations on a clean PostgreSQL database
+        working-directory: backend
+        run: python -m alembic upgrade head
       - name: Run PostgreSQL-backed API tests
         working-directory: backend
         run: python -m pytest -q
