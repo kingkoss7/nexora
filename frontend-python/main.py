@@ -335,7 +335,7 @@ def home():
                         with ui.column().classes("gap-1"):
                             ui.label(a.get("label") or "Delivery address").classes("font-bold")
                             ui.label(a["recipient_name"] + " · " + a["phone"])
-                            ui.label(a["address_line1"] + ", " + a["city"] + ", " + a["region"] + " " + a["postal_code"] + ", " + a["country"]).style("color:" + MUTED)
+                            ui.label(a["address_line1"] + ", " + a["city"] + ", " + (a.get("region") or "") + " " + a["postal_code"] + ", " + a["country"]).style("color:" + MUTED)
                             if a.get("is_default"):
                                 ui.badge("Default address", color="purple")
                         with ui.row():
