@@ -245,8 +245,17 @@ def update_product(pid: int, body: s.ProductIn, db: Session = Depends(get_db), _
 @app.delete("/products/{pid}", status_code=204)
 def delete_product(pid: int, db: Session = Depends(get_db), _=Depends(admin_user)):
     p = db.get(m.Product, pid)
-    if not p: raise HTTPException(404, "Not found")
-    db.delete(p); db.commit()
+    if not p:
+        raise HTTPException(404, "Not found")
+    db.delete(p)
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(
+            409,
+            "This product is referenced by a cart or order and cannot be deleted.",
+        ) from error
 
 @app.post("/orders", response_model=s.OrderOut, status_code=201)
 async def checkout(body: s.OrderIn, db: Session = Depends(get_db), user: m.User = Depends(current_user)):
@@ -268,9 +277,15 @@ async def checkout(body: s.OrderIn, db: Session = Depends(get_db), user: m.User 
         if len(product_pids) != len(set(product_pids)):
             raise HTTPException(422, "A product can only appear once in an order")
         for it in body.items:
-            p = db.get(m.Product, it.product_pid)
-            if not p: raise HTTPException(404, f"Product {it.product_pid} not found")
-            if p.stock < it.quantity: raise HTTPException(409, f"Insufficient stock for {p.name}")
+            p = db.scalar(
+                select(m.Product)
+                .where(m.Product.pid == it.product_pid)
+                .with_for_update()
+            )
+            if not p:
+                raise HTTPException(404, f"Product {it.product_pid} not found")
+            if p.stock < it.quantity:
+                raise HTTPException(409, f"Insufficient stock for {p.name}")
             p.stock -= it.quantity
             order.total += p.price * it.quantity
             order.items.append(m.OrderItem(
