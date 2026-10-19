@@ -1,26 +1,22 @@
-# NEXORA Database Commerce Project
+# NEXORA E-Commerce
 
-A local database-focused commerce mini-project. The frontend uses browser-native
-HTML, CSS and JavaScript with no frontend framework, dependencies, package manager
-or build step. The API remains FastAPI with SQLAlchemy and Pydantic, backed by
-PostgreSQL and Alembic.
+A database-focused e-commerce mini-project using **Python NiceGUI** for the storefront and the existing **FastAPI + SQLAlchemy + PostgreSQL + Alembic** backend. The previous HTML/CSS/JavaScript frontend remains in `frontend/` as a backup; the new Python UI is in `frontend-python/`.
 
 ## Requirements
 
 - Python 3.12+
 - PostgreSQL 16+
+- Existing backend environment configured in `backend/.env`
 
-## Backend setup
+## 1. Configure and start the backend
 
-From the repository root, create the backend environment file:
+From the repository root, create the environment file if you have not already:
 
 ```powershell
 Copy-Item backend\.env.example backend\.env
 ```
 
-Set `DATABASE_URL` and a random `SECRET_KEY` of at least 32 bytes in
-`backend\.env`. Install the API dependencies, apply migrations, create an admin,
-and start FastAPI:
+Set `DATABASE_URL` and a strong `SECRET_KEY` (at least 32 bytes) in `backend\.env`. Then start the API in terminal 1:
 
 ```powershell
 cd backend
@@ -31,54 +27,41 @@ python -m venv venv
 .\venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-The API runs at `http://localhost:8000`. Configure `CORS_ORIGINS` to allow the
-origin serving the frontend (default examples include localhost and 127.0.0.1
-on port 3000).
+The API runs at `http://127.0.0.1:8000`. Use your own admin email when running the bootstrap command. To add demo products, set `SEED_DEMO_DATA=true` in `backend/.env` before starting the API.
 
-## Frontend setup
+## 2. Start the Python NiceGUI frontend
 
-In a second terminal, serve the static files with Python:
+Open terminal 2 at the repository root:
 
 ```powershell
-cd frontend
-python -m http.server 3000 --bind 127.0.0.1
+python -m venv .venv-nicegui
+.\.venv-nicegui\Scripts\python.exe -m pip install -r frontend-python/requirements.txt
+$env:NEXORA_API_URL = "http://127.0.0.1:8000"
+.\.venv-nicegui\Scripts\python.exe frontend-python/main.py
 ```
 
-Open `http://127.0.0.1:3000`. The API base URL is `http://localhost:8000`, set
-once at the beginning of `frontend\app.js`. To use a different API URL, change
-that constant and include the frontend origin in backend `CORS_ORIGINS`.
+Open **http://127.0.0.1:3000** in your browser. NiceGUI talks to FastAPI server-side, so the browser UI does not need CORS configuration. If the API runs at another address, change `NEXORA_API_URL`.
 
-## Testing
+More detailed setup notes: [frontend-python/README.md](frontend-python/README.md).
 
-Run the backend tests:
+## Features in the Python UI
+
+- Royal Purple premium dark theme with responsive product cards.
+- Product browsing, search, category filtering and price sorting.
+- Registration and login using existing bearer-token authentication.
+- Database-backed cart, quantity updates and checkout.
+- Delivery address form and cash-on-delivery checkout.
+- Customer order history and payment status.
+- Admin product creation and valid order-status updates.
+
+The backend still validates inventory and calculates order totals. Online card payments and wishlist routes are not provided by the current API. The Python UI is a first migration pass; test it against your configured database before presenting the project.
+
+## Tests
+
+Run existing backend tests from the `backend/` directory:
 
 ```powershell
-cd backend
 .\venv\Scripts\python.exe -m pytest
 ```
 
-The browser frontend has no build or package installation. Verify its routes and
-API-backed workflows while FastAPI and PostgreSQL are running.
-
-## Core workflows
-
-- Browse, search, filter and sort products from the database.
-- Register and sign in using the existing bearer-token authentication.
-- Manage a database-backed cart and place cash-on-delivery orders with delivery
-  details.
-- Review order history, delivery progress and payment status.
-- Admin users can create, edit and delete products and advance valid order
-  statuses.
-
-The API calculates order totals and validates inventory. Online card payments
-are not enabled.
-
-## Database
-
-Backend models and Alembic history remain in `backend/app/` and `backend/alembic/`.
-Do not run migrations against a database unless you intend to apply them.
-Revision `0008_remove_wishlists` exists in the current project; applying it drops
-the optional wishlist tables and their data.
-
-The current application models are users, products, carts, cart items, addresses,
-orders, order items and payments.
+The original static frontend is preserved in `frontend/` if you need to compare or roll back. No database schema or migration files were changed by this UI addition.
