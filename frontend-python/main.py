@@ -493,7 +493,7 @@ def home():
                 ui.button("Explore collection", on_click=lambda: render_shop(), icon="arrow_forward").props("unelevated")
             ui.icon("auto_awesome", size="80px").style("color:" + ACCENT + ";opacity:.85")
         content_box = ui.column().classes("w-full gap-4")
-        with ui.footer().classes("justify-center").style("background:" + BG + ";color:" + MUTED):
+        with ui.row().classes("w-full justify-center py-4").style("background:" + BG + ";color:" + MUTED):
             ui.label("NEXORA · Python NiceGUI · FastAPI · PostgreSQL")
     render_shop()
 
