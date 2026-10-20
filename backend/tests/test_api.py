@@ -46,6 +46,22 @@ def test_fixed_demo_admin_password_is_not_accepted():
         assert response.status_code == 401
 
 
+def test_login_accepts_correct_password_and_rejects_wrong_password():
+    with TestClient(app) as c:
+        payload = {"name": "Login Check", "email": "login-check@example.com", "password": "correct-pass-123"}
+        assert c.post("/auth/register", json=payload).status_code == 201
+
+        wrong = c.post("/auth/login", json={"email": payload["email"], "password": "wrong-pass-123"})
+        assert wrong.status_code == 401
+
+        correct = c.post("/auth/login", json={"email": payload["email"], "password": payload["password"]})
+        assert correct.status_code == 200
+        token = correct.json()["access_token"]
+        assert token
+        assert c.get("/cart", headers={"Authorization": f"Bearer {token}"}).status_code == 200
+        assert c.get("/cart").status_code == 401
+
+
 def test_flow():
     with TestClient(app) as c:
         payload = {"name": " Test Customer ", "email": "a@b.com", "password": "secret1"}
