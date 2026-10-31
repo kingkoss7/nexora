@@ -1,116 +1,98 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1900" viewBox="0 0 2600 1900">
-<rect width="2600" height="1900" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="2100" viewBox="0 0 3200 2100">
+<rect width="3200" height="2100" fill="#fffdf4"/>
 <style>
-.t{font:bold 42px Arial;fill:#172033}.s{font:22px Arial;fill:#475569}
-.e{fill:#d9f2b2;stroke:#26364a;stroke-width:4}.et{font:bold 27px Arial;fill:#172033;text-anchor:middle}
-.r{fill:#fff1a8;stroke:#66551b;stroke-width:4}.rt{font:bold 21px Arial;fill:#30280e;text-anchor:middle}
-.a{fill:#e8f5c9;stroke:#526b36;stroke-width:3}.at{font:19px Arial;fill:#24351a;text-anchor:middle}
-.pk{font-weight:bold;text-decoration:underline}.ln{stroke:#475569;stroke-width:3;fill:none}.c{font:bold 21px Arial;fill:#172033}.n{font:18px Arial;fill:#475569}
+.t{font:bold 46px Arial;fill:#26351c}.sub{font:23px Arial;fill:#536344}
+.e{fill:#c9ed91;stroke:#48652e;stroke-width:4}.et{font:bold 29px Arial;fill:#26351c;text-anchor:middle}
+.r{fill:#f2e879;stroke:#8b7d25;stroke-width:4}.rt{font:bold 22px Arial;fill:#3f3912;text-anchor:middle}
+.a{fill:#dff2b8;stroke:#668b3f;stroke-width:3}.at{font:20px Arial;fill:#293b1e;text-anchor:middle}
+.pk{text-decoration:underline;font-weight:bold}.ln{stroke:#56634b;stroke-width:3;fill:none}.c{font:bold 22px Arial;fill:#26351c}.n{font:19px Arial;fill:#536344}
 </style>
-<text x="1300" y="60" class="t" text-anchor="middle">NEXORA — CHEN ENTITY RELATIONSHIP DIAGRAM</text>
-<text x="1300" y="100" class="s" text-anchor="middle">Exact entities, columns and foreign-key relationships from backend/app/models.py</text>
-<!-- ENTITY BOXES -->
-<rect class="e" x="190" y="420" width="220" height="85"/><text class="et" x="300" y="472">USERS</text>
-<rect class="e" x="790" y="220" width="220" height="85"/><text class="et" x="900" y="272">CARTS</text>
-<rect class="e" x="1390" y="220" width="260" height="85"/><text class="et" x="1520" y="272">CART_ITEMS</text>
-<rect class="e" x="2070" y="420" width="230" height="85"/><text class="et" x="2185" y="472">PRODUCTS</text>
-<rect class="e" x="190" y="1110" width="220" height="85"/><text class="et" x="300" y="1162">ADDRESSES</text>
-<rect class="e" x="790" y="1110" width="220" height="85"/><text class="et" x="900" y="1162">ORDERS</text>
-<rect class="e" x="1390" y="1110" width="260" height="85"/><text class="et" x="1520" y="1162">ORDER_ITEMS</text>
-<rect class="e" x="2070" y="1110" width="230" height="85"/><text class="et" x="2185" y="1162">PAYMENTS</text>
-
-<!-- USERS ATTRIBUTES -->
-<ellipse class="a" cx="150" cy="250" rx="85" ry="34"/><text class="at pk" x="150" y="257">uid (PK)</text><path class="ln" d="M190 278 L250 420"/>
-<ellipse class="a" cx="350" cy="220" rx="75" ry="34"/><text class="at" x="350" y="227">name</text><path class="ln" d="M350 254 L330 420"/>
-<ellipse class="a" cx="520" cy="280" rx="80" ry="34"/><text class="at" x="520" y="287">email</text><path class="ln" d="M455 300 L410 435"/>
-<ellipse class="a" cx="140" cy="650" rx="115" ry="34"/><text class="at" x="140" y="657">password_hash</text><path class="ln" d="M210 620 L250 505"/>
-<ellipse class="a" cx="370" cy="650" rx="65" ry="34"/><text class="at" x="370" y="657">role</text><path class="ln" d="M350 616 L350 505"/>
-
-<!-- CARTS ATTRIBUTES -->
-<ellipse class="a" cx="700" cy="90" rx="75" ry="34"/><text class="at pk" x="700" y="97">cid (PK)</text><path class="ln" d="M745 115 L820 220"/>
-<ellipse class="a" cx="900" cy="90" rx="105" ry="34"/><text class="at" x="900" y="97">user_uid (FK)</text><path class="ln" d="M900 124 L900 220"/>
-<ellipse class="a" cx="1100" cy="120" rx="65" ry="34"/><text class="at" x="1100" y="127">status</text><path class="ln" d="M1050 145 L990 220"/>
-<ellipse class="a" cx="760" cy="400" rx="85" ry="34"/><text class="at" x="760" y="407">created_at</text><path class="ln" d="M810 370 L850 305"/>
-<ellipse class="a" cx="1030" cy="400" rx="85" ry="34"/><text class="at" x="1030" y="407">updated_at</text><path class="ln" d="M990 370 L950 305"/>
-
-<!-- CART ITEMS ATTRIBUTES -->
-<ellipse class="a" cx="1300" cy="90" rx="120" ry="34"/><text class="at pk" x="1300" y="97">cart_item_id (PK)</text><path class="ln" d="M1350 120 L1440 220"/>
-<ellipse class="a" cx="1520" cy="90" rx="100" ry="34"/><text class="at" x="1520" y="97">cart_cid (FK)</text><path class="ln" d="M1520 124 L1520 220"/>
-<ellipse class="a" cx="1740" cy="130" rx="115" ry="34"/><text class="at" x="1740" y="137">product_pid (FK)</text><path class="ln" d="M1660 155 L1600 220"/>
-<ellipse class="a" cx="1420" cy="400" rx="75" ry="34"/><text class="at" x="1420" y="407">quantity</text><path class="ln" d="M1460 370 L1490 305"/>
-<ellipse class="a" cx="1630" cy="400" rx="75" ry="34"/><text class="at" x="1630" y="407">added_at</text><path class="ln" d="M1590 370 L1550 305"/>
-
-<!-- PRODUCTS ATTRIBUTES -->
-<ellipse class="a" cx="1980" cy="250" rx="75" ry="34"/><text class="at pk" x="1980" y="257">pid (PK)</text><path class="ln" d="M2020 275 L2100 420"/>
-<ellipse class="a" cx="2180" cy="200" rx="75" ry="34"/><text class="at" x="2180" y="207">name</text><path class="ln" d="M2180 234 L2185 420"/>
-<ellipse class="a" cx="2380" cy="260" rx="75" ry="34"/><text class="at" x="2380" y="267">price</text><path class="ln" d="M2310 285 L2260 420"/>
-<ellipse class="a" cx="2020" cy="650" rx="100" ry="34"/><text class="at" x="2020" y="657">description</text><path class="ln" d="M2080 620 L2130 505"/>
-<ellipse class="a" cx="2220" cy="650" rx="80" ry="34"/><text class="at" x="2220" y="657">category</text><path class="ln" d="M2200 616 L2200 505"/>
-<ellipse class="a" cx="2400" cy="570" rx="65" ry="34"/><text class="at" x="2400" y="577">stock</text><path class="ln" d="M2340 550 L2300 490"/>
-
-<!-- ADDRESSES ATTRIBUTES -->
-<ellipse class="a" cx="100" cy="900" rx="110" ry="34"/><text class="at pk" x="100" y="907">address_id (PK)</text><path class="ln" d="M165 925 L220 1110"/>
-<ellipse class="a" cx="320" cy="870" rx="105" ry="34"/><text class="at" x="320" y="877">user_uid (FK)</text><path class="ln" d="M320 904 L320 1110"/>
-<ellipse class="a" cx="520" cy="920" rx="65" ry="34"/><text class="at" x="520" y="927">label</text><path class="ln" d="M465 940 L410 1120"/>
-<ellipse class="a" cx="80" cy="1320" rx="105" ry="34"/><text class="at" x="80" y="1327">recipient_name</text><path class="ln" d="M145 1295 L220 1195"/>
-<ellipse class="a" cx="290" cy="1330" rx="65" ry="34"/><text class="at" x="290" y="1337">phone</text><path class="ln" d="M290 1296 L300 1195"/>
-<ellipse class="a" cx="500" cy="1320" rx="105" ry="34"/><text class="at" x="500" y="1327">address_line1</text><path class="ln" d="M435 1295 L390 1195"/>
-<ellipse class="a" cx="80" cy="1460" rx="105" ry="34"/><text class="at" x="80" y="1467">address_line2</text><path class="ln" d="M145 1435 L220 1195"/>
-<ellipse class="a" cx="290" cy="1460" rx="65" ry="34"/><text class="at" x="290" y="1467">city</text><path class="ln" d="M290 1426 L300 1195"/>
-<ellipse class="a" cx="500" cy="1460" rx="65" ry="34"/><text class="at" x="500" y="1467">region</text><path class="ln" d="M435 1435 L390 1195"/>
-<ellipse class="a" cx="80" cy="1600" rx="95" ry="34"/><text class="at" x="80" y="1607">postal_code</text><path class="ln" d="M145 1575 L220 1195"/>
-<ellipse class="a" cx="290" cy="1600" rx="75" ry="34"/><text class="at" x="290" y="1607">country</text><path class="ln" d="M290 1566 L300 1195"/>
-<ellipse class="a" cx="500" cy="1600" rx="80" ry="34"/><text class="at" x="500" y="1607">is_default</text><path class="ln" d="M435 1575 L390 1195"/>
-<ellipse class="a" cx="290" cy="1740" rx="85" ry="34"/><text class="at" x="290" y="1747">created_at</text><path class="ln" d="M290 1706 L300 1195"/>
-
-<!-- ORDERS ATTRIBUTES -->
-<ellipse class="a" cx="700" cy="900" rx="65" ry="34"/><text class="at pk" x="700" y="907">oid (PK)</text><path class="ln" d="M745 925 L820 1110"/>
-<ellipse class="a" cx="900" cy="870" rx="105" ry="34"/><text class="at" x="900" y="877">user_uid (FK)</text><path class="ln" d="M900 904 L900 1110"/>
-<ellipse class="a" cx="1100" cy="920" rx="65" ry="34"/><text class="at" x="1100" y="927">total</text><path class="ln" d="M1050 940 L990 1120"/>
-<ellipse class="a" cx="700" cy="1320" rx="65" ry="34"/><text class="at" x="700" y="1327">status</text><path class="ln" d="M750 1295 L820 1195"/>
-<ellipse class="a" cx="900" cy="1330" rx="85" ry="34"/><text class="at" x="900" y="1337">created_at</text><path class="ln" d="M900 1296 L900 1195"/>
-<ellipse class="a" cx="1100" cy="1320" rx="120" ry="34"/><text class="at" x="1100" y="1327">delivery_recipient_name</text><path class="ln" d="M1030 1295 L990 1195"/>
-<ellipse class="a" cx="700" cy="1460" rx="85" ry="34"/><text class="at" x="700" y="1467">delivery_phone</text><path class="ln" d="M750 1435 L820 1195"/>
-<ellipse class="a" cx="930" cy="1460" rx="120" ry="34"/><text class="at" x="930" y="1467">delivery_address_line1</text><path class="ln" d="M930 1426 L920 1195"/>
-<ellipse class="a" cx="1170" cy="1460" rx="120" ry="34"/><text class="at" x="1170" y="1467">delivery_address_line2</text><path class="ln" d="M1100 1435 L990 1195"/>
-<ellipse class="a" cx="700" cy="1600" rx="95" ry="34"/><text class="at" x="700" y="1607">delivery_city</text><path class="ln" d="M760 1575 L820 1195"/>
-<ellipse class="a" cx="930" cy="1600" rx="100" ry="34"/><text class="at" x="930" y="1607">delivery_region</text><path class="ln" d="M930 1566 L920 1195"/>
-<ellipse class="a" cx="1170" cy="1600" rx="120" ry="34"/><text class="at" x="1170" y="1607">delivery_postal_code</text><path class="ln" d="M1100 1575 L990 1195"/>
-<ellipse class="a" cx="800" cy="1740" rx="115" ry="34"/><text class="at" x="800" y="1747">delivery_country</text><path class="ln" d="M850 1706 L850 1195"/>
-
-<!-- ORDER ITEMS ATTRIBUTES -->
-<ellipse class="a" cx="1300" cy="900" rx="120" ry="34"/><text class="at pk" x="1300" y="907">order_item_id (PK)</text><path class="ln" d="M1350 925 L1440 1110"/>
-<ellipse class="a" cx="1520" cy="870" rx="100" ry="34"/><text class="at" x="1520" y="877">order_oid (FK)</text><path class="ln" d="M1520 904 L1520 1110"/>
-<ellipse class="a" cx="1740" cy="920" rx="105" ry="34"/><text class="at" x="1740" y="927">product_pid (FK)</text><path class="ln" d="M1660 940 L1600 1120"/>
-<ellipse class="a" cx="1300" cy="1320" rx="100" ry="34"/><text class="at" x="1300" y="1327">product_name</text><path class="ln" d="M1360 1295 L1440 1195"/>
-<ellipse class="a" cx="1520" cy="1330" rx="75" ry="34"/><text class="at" x="1520" y="1337">quantity</text><path class="ln" d="M1520 1296 L1520 1195"/>
-<ellipse class="a" cx="1740" cy="1320" rx="65" ry="34"/><text class="at" x="1740" y="1327">price</text><path class="ln" d="M1680 1295 L1600 1195"/>
-
-<!-- PAYMENTS ATTRIBUTES -->
-<ellipse class="a" cx="1980" cy="900" rx="105" ry="34"/><text class="at pk" x="1980" y="907">payment_id (PK)</text><path class="ln" d="M2040 925 L2120 1110"/>
-<ellipse class="a" cx="2200" cy="870" rx="115" ry="34"/><text class="at" x="2200" y="877">order_oid (FK, UNIQUE)</text><path class="ln" d="M2200 904 L2200 1110"/>
-<ellipse class="a" cx="2400" cy="950" rx="70" ry="34"/><text class="at" x="2400" y="957">method</text><path class="ln" d="M2340 970 L2300 1120"/>
-<ellipse class="a" cx="1980" cy="1320" rx="65" ry="34"/><text class="at" x="1980" y="1327">status</text><path class="ln" d="M2030 1295 L2120 1195"/>
-<ellipse class="a" cx="2185" cy="1330" rx="70" ry="34"/><text class="at" x="2185" y="1337">amount</text><path class="ln" d="M2185 1296 L2185 1195"/>
-<ellipse class="a" cx="2390" cy="1320" rx="85" ry="34"/><text class="at" x="2390" y="1327">created_at</text><path class="ln" d="M2330 1295 L2260 1195"/>
-
-<!-- RELATIONSHIP DIAMONDS AND CONNECTORS -->
-<path class="ln" d="M410 450 L520 450"/><polygon class="r" points="600,390 680,450 600,510 520,450"/><text class="rt" x="600" y="458">OWNS</text><path class="ln" d="M680 450 L730 450 L730 262 L790 262"/><text class="c" x="445" y="430">1</text><text class="c" x="745" y="420">M</text>
-
-<path class="ln" d="M300 505 L300 720"/><polygon class="r" points="220,780 300,720 380,780 300,840"/><text class="rt" x="300" y="788">HAS</text><path class="ln" d="M300 840 L300 1110"/><text class="c" x="320" y="550">1</text><text class="c" x="320" y="1085">M</text>
-
-<path class="ln" d="M410 480 L560 850 L650 1050"/><polygon class="r" points="650,970 730,1030 650,1090 570,1030"/><text class="rt" x="650" y="1038">PLACES</text><path class="ln" d="M730 1030 L790 1150"/><text class="c" x="470" y="600">1</text><text class="c" x="755" y="1100">M</text>
-
-<path class="ln" d="M1010 262 L1110 262"/><polygon class="r" points="1200,202 1280,262 1200,322 1120,262"/><text class="rt" x="1200" y="270">HAS ITEMS</text><path class="ln" d="M1280 262 L1390 262"/><text class="c" x="1040" y="240">1</text><text class="c" x="1340" y="240">M</text>
-
-<path class="ln" d="M2070 455 L1950 455 L1870 455"/><polygon class="r" points="1790,395 1870,455 1790,515 1710,455"/><text class="rt" x="1790" y="463">APPEARS IN</text><path class="ln" d="M1710 455 L1650 455 L1650 305"/><text class="c" x="2020" y="435">1</text><text class="c" x="1670" y="430">M</text>
-
-<path class="ln" d="M1010 1152 L1120 1152"/><polygon class="r" points="1200,1092 1280,1152 1200,1212 1120,1152"/><text class="rt" x="1200" y="1160">CONTAINS</text><path class="ln" d="M1280 1152 L1390 1152"/><text class="c" x="1040" y="1130">1</text><text class="c" x="1340" y="1130">M</text>
-
-<path class="ln" d="M2185 505 L2185 720 L1900 720 L1800 900 L1650 1152"/><polygon class="r" points="1790,825 1870,885 1790,945 1710,885"/><text class="rt" x="1790" y="893">REFERENCED BY</text><path class="ln" d="M1710 885 L1650 930 L1650 1152"/><text class="c" x="2205" y="550">1</text><text class="c" x="1670" y="1100">M</text>
-
-<path class="ln" d="M1010 1152 L1200 1380 L1900 1380 L2070 1152"/><polygon class="r" points="1790,1320 1870,1380 1790,1440 1710,1380"/><text class="rt" x="1790" y="1388">HAS PAYMENT</text><text class="c" x="1040" y="1180">1</text><text class="c" x="2010" y="1190">0..1</text>
-
-<text class="n" x="1300" y="1830" text-anchor="middle">PK = Primary Key • FK = Foreign Key • 1:M = One-to-Many • 1:0..1 = One-to-Zero-or-One</text>
-<text class="n" x="1300" y="1860" text-anchor="middle">Delivery address is stored as snapshot fields on ORDERS; ADDRESSES has no direct FK relationship to ORDERS.</text>
+<text x="1600" y="65" class="t" text-anchor="middle">NEXORA — ENTITY RELATIONSHIP DIAGRAM</text>
+<text x="1600" y="105" class="sub" text-anchor="middle">Chen notation • Based on the actual SQLAlchemy models in backend/app/models.py</text>
+<!-- Entities -->
+<rect class="e" x="190" y="500" width="230" height="82"/><text class="et" x="305" y="551">USERS</text>
+<rect class="e" x="1260" y="500" width="230" height="82"/><text class="et" x="1375" y="551">ORDERS</text>
+<rect class="e" x="2570" y="500" width="230" height="82"/><text class="et" x="2685" y="551">PRODUCTS</text>
+<rect class="e" x="190" y="1390" width="250" height="82"/><text class="et" x="315" y="1441">ADDRESSES</text>
+<rect class="e" x="1020" y="1390" width="230" height="82"/><text class="et" x="1135" y="1441">CARTS</text>
+<rect class="e" x="1690" y="1390" width="270" height="82"/><text class="et" x="1825" y="1441">CART_ITEMS</text>
+<rect class="e" x="2350" y="1390" width="290" height="82"/><text class="et" x="2495" y="1441">ORDER_ITEMS</text>
+<rect class="e" x="1260" y="1780" width="250" height="82"/><text class="et" x="1385" y="1831">PAYMENTS</text>
+<!-- User attributes -->
+<ellipse class="a" cx="110" cy="270" rx="70" ry="34"/><text class="at pk" x="110" y="277">uid (PK)</text><path class="ln" d="M110 304 L250 500"/>
+<ellipse class="a" cx="300" cy="220" rx="75" ry="34"/><text class="at " x="300" y="227">name</text><path class="ln" d="M300 254 L300 500"/>
+<ellipse class="a" cx="500" cy="300" rx="75" ry="34"/><text class="at " x="500" y="307">email</text><path class="ln" d="M500 334 L420 530"/>
+<ellipse class="a" cx="100" cy="760" rx="110" ry="34"/><text class="at " x="100" y="767">password_hash</text><path class="ln" d="M100 726 L240 582"/>
+<ellipse class="a" cx="390" cy="760" rx="60" ry="34"/><text class="at " x="390" y="767">role</text><path class="ln" d="M390 726 L370 582"/>
+<!-- Order attributes -->
+<ellipse class="a" cx="1120" cy="280" rx="65" ry="34"/><text class="at pk" x="1120" y="287">oid (PK)</text><path class="ln" d="M1120 314 L1300 500"/>
+<ellipse class="a" cx="1320" cy="220" rx="105" ry="34"/><text class="at " x="1320" y="227">user_uid (FK)</text><path class="ln" d="M1320 254 L1370 500"/>
+<ellipse class="a" cx="1530" cy="290" rx="65" ry="34"/><text class="at " x="1530" y="297">total</text><path class="ln" d="M1530 324 L1460 520"/>
+<ellipse class="a" cx="1100" cy="760" rx="65" ry="34"/><text class="at " x="1100" y="767">status</text><path class="ln" d="M1100 726 L1300 582"/>
+<ellipse class="a" cx="1320" cy="800" rx="85" ry="34"/><text class="at " x="1320" y="807">created_at</text><path class="ln" d="M1320 766 L1370 582"/>
+<ellipse class="a" cx="1560" cy="760" rx="125" ry="34"/><text class="at " x="1560" y="767">delivery_recipient_name</text><path class="ln" d="M1560 726 L1450 582"/>
+<ellipse class="a" cx="1100" cy="930" rx="90" ry="34"/><text class="at " x="1100" y="937">delivery_phone</text><path class="ln" d="M1100 896 L1300 582"/>
+<ellipse class="a" cx="1330" cy="970" rx="120" ry="34"/><text class="at " x="1330" y="977">delivery_address_line1</text><path class="ln" d="M1330 936 L1370 582"/>
+<ellipse class="a" cx="1580" cy="960" rx="120" ry="34"/><text class="at " x="1580" y="967">delivery_address_line2</text><path class="ln" d="M1580 926 L1450 582"/>
+<ellipse class="a" cx="1060" cy="1100" rx="80" ry="34"/><text class="at " x="1060" y="1107">delivery_city</text><path class="ln" d="M1060 1066 L1300 582"/>
+<ellipse class="a" cx="1260" cy="1110" rx="90" ry="34"/><text class="at " x="1260" y="1117">delivery_region</text><path class="ln" d="M1260 1076 L1340 582"/>
+<ellipse class="a" cx="1470" cy="1110" rx="110" ry="34"/><text class="at " x="1470" y="1117">delivery_postal_code</text><path class="ln" d="M1470 1076 L1450 582"/>
+<ellipse class="a" cx="1680" cy="1080" rx="105" ry="34"/><text class="at " x="1680" y="1087">delivery_country</text><path class="ln" d="M1680 1046 L1500 582"/>
+<!-- Product attributes -->
+<ellipse class="a" cx="2500" cy="270" rx="65" ry="34"/><text class="at pk" x="2500" y="277">pid (PK)</text><path class="ln" d="M2500 304 L2600 500"/>
+<ellipse class="a" cx="2700" cy="220" rx="70" ry="34"/><text class="at " x="2700" y="227">name</text><path class="ln" d="M2700 254 L2700 500"/>
+<ellipse class="a" cx="2890" cy="290" rx="70" ry="34"/><text class="at " x="2890" y="297">price</text><path class="ln" d="M2890 324 L2780 520"/>
+<ellipse class="a" cx="2500" cy="760" rx="95" ry="34"/><text class="at " x="2500" y="767">description</text><path class="ln" d="M2500 726 L2600 582"/>
+<ellipse class="a" cx="2700" cy="800" rx="80" ry="34"/><text class="at " x="2700" y="807">category</text><path class="ln" d="M2700 766 L2700 582"/>
+<ellipse class="a" cx="2900" cy="740" rx="65" ry="34"/><text class="at " x="2900" y="747">stock</text><path class="ln" d="M2900 706 L2800 570"/>
+<!-- Address attributes -->
+<ellipse class="a" cx="80" cy="1190" rx="105" ry="34"/><text class="at pk" x="80" y="1197">address_id (PK)</text><path class="ln" d="M80 1224 L250 1390"/>
+<ellipse class="a" cx="300" cy="1160" rx="105" ry="34"/><text class="at " x="300" y="1167">user_uid (FK)</text><path class="ln" d="M300 1194 L300 1390"/>
+<ellipse class="a" cx="510" cy="1220" rx="60" ry="34"/><text class="at " x="510" y="1227">label</text><path class="ln" d="M510 1254 L420 1420"/>
+<ellipse class="a" cx="80" cy="1580" rx="105" ry="34"/><text class="at " x="80" y="1587">recipient_name</text><path class="ln" d="M80 1546 L250 1472"/>
+<ellipse class="a" cx="300" cy="1630" rx="65" ry="34"/><text class="at " x="300" y="1637">phone</text><path class="ln" d="M300 1596 L310 1472"/>
+<ellipse class="a" cx="520" cy="1580" rx="105" ry="34"/><text class="at " x="520" y="1587">address_line1</text><path class="ln" d="M520 1546 L420 1472"/>
+<ellipse class="a" cx="80" cy="1740" rx="105" ry="34"/><text class="at " x="80" y="1747">address_line2</text><path class="ln" d="M80 1706 L250 1472"/>
+<ellipse class="a" cx="300" cy="1810" rx="60" ry="34"/><text class="at " x="300" y="1817">city</text><path class="ln" d="M300 1776 L310 1472"/>
+<ellipse class="a" cx="510" cy="1740" rx="65" ry="34"/><text class="at " x="510" y="1747">region</text><path class="ln" d="M510 1706 L420 1472"/>
+<ellipse class="a" cx="80" cy="1900" rx="95" ry="34"/><text class="at " x="80" y="1907">postal_code</text><path class="ln" d="M80 1866 L250 1472"/>
+<ellipse class="a" cx="300" cy="1980" rx="70" ry="34"/><text class="at " x="300" y="1987">country</text><path class="ln" d="M300 1946 L310 1472"/>
+<ellipse class="a" cx="510" cy="1900" rx="80" ry="34"/><text class="at " x="510" y="1907">is_default</text><path class="ln" d="M510 1866 L420 1472"/>
+<ellipse class="a" cx="720" cy="1800" rx="85" ry="34"/><text class="at " x="720" y="1807">created_at</text><path class="ln" d="M720 1766 L440 1450"/>
+<!-- Cart attributes -->
+<ellipse class="a" cx="900" cy="1180" rx="65" ry="34"/><text class="at pk" x="900" y="1187">cid (PK)</text><path class="ln" d="M900 1214 L1100 1390"/>
+<ellipse class="a" cx="1100" cy="1160" rx="105" ry="34"/><text class="at " x="1100" y="1167">user_uid (FK)</text><path class="ln" d="M1100 1194 L1140 1390"/>
+<ellipse class="a" cx="1300" cy="1210" rx="65" ry="34"/><text class="at " x="1300" y="1217">status</text><path class="ln" d="M1300 1244 L1200 1420"/>
+<ellipse class="a" cx="920" cy="1590" rx="85" ry="34"/><text class="at " x="920" y="1597">created_at</text><path class="ln" d="M920 1556 L1100 1472"/>
+<ellipse class="a" cx="1230" cy="1600" rx="85" ry="34"/><text class="at " x="1230" y="1607">updated_at</text><path class="ln" d="M1230 1566 L1200 1472"/>
+<!-- Cart item attributes -->
+<ellipse class="a" cx="1600" cy="1180" rx="120" ry="34"/><text class="at pk" x="1600" y="1187">cart_item_id (PK)</text><path class="ln" d="M1600 1214 L1760 1390"/>
+<ellipse class="a" cx="1810" cy="1160" rx="100" ry="34"/><text class="at " x="1810" y="1167">cart_cid (FK)</text><path class="ln" d="M1810 1194 L1820 1390"/>
+<ellipse class="a" cx="2020" cy="1210" rx="110" ry="34"/><text class="at " x="2020" y="1217">product_pid (FK)</text><path class="ln" d="M2020 1244 L1900 1420"/>
+<ellipse class="a" cx="1650" cy="1600" rx="75" ry="34"/><text class="at " x="1650" y="1607">quantity</text><path class="ln" d="M1650 1566 L1770 1472"/>
+<ellipse class="a" cx="1920" cy="1600" rx="75" ry="34"/><text class="at " x="1920" y="1607">added_at</text><path class="ln" d="M1920 1566 L1900 1472"/>
+<!-- Order item attributes -->
+<ellipse class="a" cx="2280" cy="1180" rx="120" ry="34"/><text class="at pk" x="2280" y="1187">order_item_id (PK)</text><path class="ln" d="M2280 1214 L2440 1390"/>
+<ellipse class="a" cx="2500" cy="1160" rx="100" ry="34"/><text class="at " x="2500" y="1167">order_oid (FK)</text><path class="ln" d="M2500 1194 L2500 1390"/>
+<ellipse class="a" cx="2710" cy="1210" rx="110" ry="34"/><text class="at " x="2710" y="1217">product_pid (FK)</text><path class="ln" d="M2710 1244 L2600 1420"/>
+<ellipse class="a" cx="2310" cy="1600" rx="100" ry="34"/><text class="at " x="2310" y="1607">product_name</text><path class="ln" d="M2310 1566 L2440 1472"/>
+<ellipse class="a" cx="2510" cy="1630" rx="75" ry="34"/><text class="at " x="2510" y="1637">quantity</text><path class="ln" d="M2510 1596 L2510 1472"/>
+<ellipse class="a" cx="2710" cy="1600" rx="65" ry="34"/><text class="at " x="2710" y="1607">price</text><path class="ln" d="M2710 1566 L2600 1472"/>
+<!-- Payment attributes -->
+<ellipse class="a" cx="1110" cy="1740" rx="105" ry="34"/><text class="at pk" x="1110" y="1747">payment_id (PK)</text><path class="ln" d="M1110 1774 L1380 1780"/>
+<ellipse class="a" cx="1370" cy="1690" rx="115" ry="34"/><text class="at " x="1370" y="1697">order_oid (FK, UNIQUE)</text><path class="ln" d="M1370 1724 L1400 1780"/>
+<ellipse class="a" cx="1610" cy="1740" rx="70" ry="34"/><text class="at " x="1610" y="1747">method</text><path class="ln" d="M1610 1774 L1510 1810"/>
+<ellipse class="a" cx="1110" cy="1960" rx="65" ry="34"/><text class="at " x="1110" y="1967">status</text><path class="ln" d="M1110 1926 L1380 1862"/>
+<ellipse class="a" cx="1370" cy="2020" rx="70" ry="34"/><text class="at " x="1370" y="2027">amount</text><path class="ln" d="M1370 1986 L1400 1862"/>
+<ellipse class="a" cx="1610" cy="1960" rx="85" ry="34"/><text class="at " x="1610" y="1967">created_at</text><path class="ln" d="M1610 1926 L1510 1862"/>
+<!-- Relationship diamonds and cardinalities -->
+<path class="ln" d="M420 540 L572 540"/><polygon class="r" points="650,482 728,540 650,598 572,540"/><text class="rt" x="650" y="547">PLACES</text><path class="ln" d="M728 540 L1260 540"/><text class="c" x="438" y="524">1</text><text class="c" x="1232" y="524">M</text>
+<path class="ln" d="M300 582 L572 1450"/><polygon class="r" points="650,1392 728,1450 650,1508 572,1450"/><text class="rt" x="650" y="1457">HAS</text><path class="ln" d="M728 1450 L190 1430"/><text class="c" x="318" y="566">1</text><text class="c" x="162" y="1414">M</text>
+<path class="ln" d="M330 582 L722 900"/><polygon class="r" points="800,842 878,900 800,958 722,900"/><text class="rt" x="800" y="907">OWNS</text><path class="ln" d="M878 900 L1020 1430"/><text class="c" x="348" y="566">1</text><text class="c" x="992" y="1414">M</text>
+<path class="ln" d="M1135 582 L1342 900"/><polygon class="r" points="1420,842 1498,900 1420,958 1342,900"/><text class="rt" x="1420" y="907">HAS ITEMS</text><path class="ln" d="M1498 900 L1690 1430"/><text class="c" x="1153" y="566">1</text><text class="c" x="1662" y="1414">M</text>
+<path class="ln" d="M2570 540 L2122 900"/><polygon class="r" points="2200,842 2278,900 2200,958 2122,900"/><text class="rt" x="2200" y="907">IN CART</text><path class="ln" d="M2278 900 L1960 1430"/><text class="c" x="2588" y="524">1</text><text class="c" x="1932" y="1414">M</text>
+<path class="ln" d="M1490 540 L1722 540"/><polygon class="r" points="1800,482 1878,540 1800,598 1722,540"/><text class="rt" x="1800" y="547">INCLUDES</text><path class="ln" d="M1878 540 L2570 540"/><text class="c" x="1508" y="524">M</text><text class="c" x="2542" y="524">1</text>
+<path class="ln" d="M1490 582 L2122 1450"/><polygon class="r" points="2200,1392 2278,1450 2200,1508 2122,1450"/><text class="rt" x="2200" y="1457">INCLUDES</text><path class="ln" d="M2278 1450 L2350 1430"/><text class="c" x="1508" y="566">1</text><text class="c" x="2322" y="1414">M</text>
+<path class="ln" d="M1490 582 L1522 1650"/><polygon class="r" points="1600,1592 1678,1650 1600,1708 1522,1650"/><text class="rt" x="1600" y="1657">HAS PAYMENT</text><path class="ln" d="M1678 1650 L1385 1780"/><text class="c" x="1508" y="566">1</text><text class="c" x="1357" y="1764">0..1</text>
+<text x="1600" y="2050" class="n" text-anchor="middle">Rectangle = Entity • Diamond = Relationship • Oval = Attribute • Underlined = Primary Key • FK = Foreign Key</text>
 </svg>
