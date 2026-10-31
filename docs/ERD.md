@@ -1,24 +1,15 @@
 # NEXORA ER Diagram
 
-This Chen-notation diagram is based on the actual SQLAlchemy definitions in `backend/app/models.py`.
+The diagram is styled to match the supplied Chen-notation reference: green entity rectangles, yellow relationship diamonds, oval attributes, underlined primary keys, connecting lines, and 1/M cardinalities.
+
+It is based on the exact SQLAlchemy schema in `backend/app/models.py`.
 
 ![NEXORA Chen ER Diagram](./nexora_erd.svg)
 
-## Chen notation
-- Rectangle: entity/table
-- Diamond: relationship
-- Oval: attribute
-- Underlined attribute: primary key
-- FK: foreign key
-- 1:M: one-to-many
-- 1:0..1: one-to-zero-or-one
+## Entities
+USERS, PRODUCTS, CARTS, CART_ITEMS, ADDRESSES, ORDERS, ORDER_ITEMS, PAYMENTS.
 
-## Exact schema represented
-The diagram contains the eight entities defined in the current model: `users`, `products`, `carts`, `cart_items`, `addresses`, `orders`, `order_items`, and `payments`.
-
-It does not add wishlist or category tables. Product category is the `category` attribute on `products`.
-
-## Relationship cardinalities
+## Relationships
 - USERS 1:M CARTS
 - USERS 1:M ADDRESSES
 - USERS 1:M ORDERS
@@ -28,7 +19,4 @@ It does not add wishlist or category tables. Product category is the `category` 
 - PRODUCTS 1:M ORDER_ITEMS
 - ORDERS 1:0..1 PAYMENTS
 
-The model stores delivery recipient/address snapshot fields directly on `orders`; there is no `address_id` foreign key from `orders` to `addresses`. Each payment belongs to one order, and `payments.order_oid` is unique.
-
-## Notes
-All attribute names shown are taken from the SQLAlchemy model. Check constraints and unique constraints are schema rules, not separate ER entities.
+Product category is an attribute of PRODUCTS, not a separate table. Wishlist tables are not part of the current model. Delivery address fields are stored directly on ORDERS; there is no address foreign key on ORDERS.
