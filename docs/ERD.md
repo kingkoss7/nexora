@@ -1,10 +1,10 @@
 # NEXORA ER Diagram
 
-This Chen-notation ER diagram is based on the current SQLAlchemy schema in `backend/app/models.py`.
+This Chen-notation diagram is based on the actual SQLAlchemy definitions in `backend/app/models.py`.
 
 ![NEXORA Chen ER Diagram](./nexora_erd.svg)
 
-## Notation
+## Chen notation
 - Rectangle: entity/table
 - Diamond: relationship
 - Oval: attribute
@@ -13,10 +13,22 @@ This Chen-notation ER diagram is based on the current SQLAlchemy schema in `back
 - 1:M: one-to-many
 - 1:0..1: one-to-zero-or-one
 
-## Schema notes
-- The current model has eight entities: `users`, `products`, `carts`, `cart_items`, `addresses`, `orders`, `order_items`, and `payments`.
-- Product category is stored as the `category` attribute on `products`; there is no separate category table.
-- There are no wishlist tables in the current `models.py`.
-- Order delivery details are stored directly as delivery snapshot columns on `orders`; `orders` has no `address_id` foreign key.
-- Each order can have at most one payment because `payments.order_oid` has a unique constraint.
-- Each cart item references one product and one cart. A cart can contain multiple cart items.
+## Exact schema represented
+The diagram contains the eight entities defined in the current model: `users`, `products`, `carts`, `cart_items`, `addresses`, `orders`, `order_items`, and `payments`.
+
+It does not add wishlist or category tables. Product category is the `category` attribute on `products`.
+
+## Relationship cardinalities
+- USERS 1:M CARTS
+- USERS 1:M ADDRESSES
+- USERS 1:M ORDERS
+- CARTS 1:M CART_ITEMS
+- PRODUCTS 1:M CART_ITEMS
+- ORDERS 1:M ORDER_ITEMS
+- PRODUCTS 1:M ORDER_ITEMS
+- ORDERS 1:0..1 PAYMENTS
+
+The model stores delivery recipient/address snapshot fields directly on `orders`; there is no `address_id` foreign key from `orders` to `addresses`. Each payment belongs to one order, and `payments.order_oid` is unique.
+
+## Notes
+All attribute names shown are taken from the SQLAlchemy model. Check constraints and unique constraints are schema rules, not separate ER entities.
