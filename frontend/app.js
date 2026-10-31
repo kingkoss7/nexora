@@ -3,6 +3,7 @@ const app = document.querySelector("#app");
 const navLinks = document.querySelector("#nav-links");
 let cart = [];
 let renderId = 0;
+let cartNavigationError = false;
 
 const token = () => localStorage.getItem("token");
 const role = () => localStorage.getItem("role");
@@ -12,7 +13,36 @@ const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => 
 const money = (value) => new Intl.NumberFormat("en-IN", {
   style: "currency", currency: "INR", minimumFractionDigits: 2,
 }).format(Number(value) || 0);
+const PRODUCT_IMAGES = {
+  1: "photo-1496181133206-80ce9b88a853",
+  2: "photo-1505740420928-5e560c06d30e",
+  3: "photo-1587829741301-dc798b83add3",
+  4: "photo-1542291026-7eec264c27ff",
+  5: "photo-1551028719-00167b16eac5",
+  6: "photo-1495474472287-4d71bcdd2085",
+  7: "photo-1507473885765-e6ed057f782c",
+  8: "photo-1553062407-98eeb64c6a62",
+  9: "photo-1523275335684-37898b6baf30",
+  10: "photo-1523170335258-f5ed11844a49",
+  11: "photo-1511707171634-5f897ff02aa9",
+  12: "photo-1544244015-0df4b3ffc6b0",
+  13: "photo-1516035069371-29a1b244cc32",
+  14: "photo-1608043152269-423dbba4e7e1",
+  15: "photo-1606220945770-b5b6c2c55bf1",
+  16: "photo-1609091839311-d5365f9ff1c5",
+  17: "photo-1583863788434-e58a36330cf0",
+};
+const CATEGORY_IMAGES = {
+  electronics: "photo-1496181133206-80ce9b88a853",
+  fashion: "photo-1553062407-98eeb64c6a62",
+  home: "photo-1495474472287-4d71bcdd2085",
+  accessories: "photo-1523170335258-f5ed11844a49",
+};
 const errorMessage = (error) => error instanceof Error ? error.message : "The request could not be completed.";
+const productImage = (product) => {
+  const photo = PRODUCT_IMAGES[product.pid] || CATEGORY_IMAGES[String(product.category).toLowerCase()] || CATEGORY_IMAGES.electronics;
+  return `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=900&q=85`;
+};
 
 async function api(path, options = {}) {
   const headers = { ...options.headers };
@@ -36,6 +66,7 @@ function signOut(navigate = true) {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
   cart = [];
+  cartNavigationError = false;
   if (navigate) location.hash = "#/shop";
   else location.hash = `#/login?next=${encodeURIComponent(route().path)}`;
 }
@@ -61,13 +92,59 @@ function safeNext(value) {
     : "/shop";
 }
 
-function updateNavigation() {
+function navigationIcon(name) {
+  const paths = {
+    shop: '<path d="M3 10h18M5 10v10h14V10M3 10l2-6h14l2 6M9 20v-6h6v6"/>',
+    cart: '<path d="M5 8h14l1 13H4L5 8Zm4 0a3 3 0 0 1 6 0"/>',
+    orders: '<path d="M6 3h12v18l-6-3-6 3V3Zm3 5h6m-6 4h6"/>',
+    account: '<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>',
+    admin: '<path d="M12 3 20 6v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3Zm-3 9 2 2 4-4"/>',
+  };
+  return `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`;
+}
+
+function activeNavigationSection(path) {
+  if (path === "/" || path === "/shop" || path.startsWith("/products/")) return "shop";
+  if (path === "/cart" || path === "/checkout") return "cart";
+  if (path === "/orders") return "orders";
+  if (path === "/account") return "account";
+  if (path === "/admin") return "admin";
+  return "";
+}
+
+function updateNavigation(path = route().path) {
+  const active = activeNavigationSection(path);
+  const link = (section, label, href, detail = "") => `
+    <a href="${href}" data-nav="${section}"${active === section ? ' aria-current="page" class="is-active"' : ""}>
+      ${navigationIcon(section)}<span>${label}</span>${detail}</a>`;
+  const cartQuantity = cart.reduce((sum, line) => sum + Number(line.quantity || 0), 0);
+  const cartBadge = cartNavigationError
+    ? '<span class="cart-count cart-count-error" aria-label="Cart count unavailable" title="Cart count unavailable">!</span>'
+    : `<span class="cart-count" aria-label="${cartQuantity} ${cartQuantity === 1 ? "item" : "items"}">${cartQuantity}</span>`;
   navLinks.innerHTML = [
-    '<a href="#/shop">Shop</a>',
-    token() ? '<a href="#/cart">Cart</a><a href="#/orders">Orders</a><a href="#/account">Account</a>' : "",
-    role() === "admin" ? '<a href="#/admin">Admin</a>' : "",
+    link("shop", "Shop", "#/shop"),
+    token() ? [
+      link("cart", "Cart", "#/cart", cartBadge),
+      link("orders", "Orders", "#/orders"),
+      link("account", "Account", "#/account"),
+    ].join("") : "",
+    role() === "admin" ? link("admin", "Admin", "#/admin") : "",
     token() ? '<button type="button" data-action="logout">Sign out</button>' : '<a class="button small-button" href="#/login">Sign in</a>',
   ].join("");
+}
+
+async function refreshCartNavigation(path, id) {
+  try {
+    const result = await api("/cart");
+    if (id !== renderId) return;
+    cart = result.items;
+    cartNavigationError = false;
+  } catch (error) {
+    if (id !== renderId) return;
+    cartNavigationError = true;
+    console.error("Unable to load cart count:", error);
+  }
+  updateNavigation(path);
 }
 
 function message(text, kind = "error") {
@@ -76,6 +153,8 @@ function message(text, kind = "error") {
 
 function productCard(product) {
   return `<article class="panel product-card">
+    <div class="product-art"><img class="product-photo" src="${productImage(product)}" alt="${escapeHtml(product.name)}" loading="lazy">
+      <span class="art-index">NEXORA · NO. ${String(product.pid).padStart(2, "0")}</span></div>
     <span class="category">${escapeHtml(product.category)}</span>
     <h2>${escapeHtml(product.name)}</h2>
     <p class="description">${escapeHtml(product.description || "")}</p>
@@ -92,24 +171,40 @@ async function showShop(id) {
         <p class="muted">Explore electronics, accessories, and everyday essentials selected for life in motion.</p>
         <button class="button secondary" type="button" data-action="scroll-products">Browse the collection <span aria-hidden="true">↓</span></button>
       </div>
-      <div class="intro-mark" aria-hidden="true"><span>N</span><small>BUILT FOR WHAT'S NEXT</small></div>
+      <div class="intro-art" id="featured-art" aria-label="Featured luxury watch">
+        <span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span>
+        <span class="art-glow"></span><span class="intro-monogram">NX</span>
+        <span class="edition-tag">OBJECTS FOR<br>THE MODERN ERA</span>
+        <span class="intro-caption">NEXORA · EST. 2026</span>
+      </div>
     </section>
     <section class="storefront-highlights" aria-label="Shopping highlights">
       <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">✳</span><div><strong>Thoughtfully selected</strong><span>Everyday technology and essentials</span></div></div>
       <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">₹</span><div><strong>Clear pricing</strong><span>Prices displayed in Indian rupees</span></div></div>
-      <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">↗</span><div><strong>Database connected</strong><span>Browse the live product catalogue</span></div></div>
+      <div class="highlight-item"><span class="highlight-icon" aria-hidden="true">↗</span><div><strong>Made for every day</strong><span>Thoughtful picks for work, home, and play</span></div></div>
     </section>
     <div class="section-heading" id="collection-heading"><div><p class="eyebrow">THE COLLECTION</p><h2>Shop products</h2></div>
-      <p class="muted">Browse products stored in the NEXORA database.</p></div>
+      <p class="muted">Find something you'll love.</p></div>
     <div class="toolbar"><input class="field" name="q" aria-label="Search products" placeholder="Search products">
       <select class="field" name="category" aria-label="Category"><option value="">All categories</option></select>
       <select class="field" name="sort" aria-label="Sort products"><option value="name">Name</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option></select></div>
     <div id="shop-error"></div><div id="products" class="grid products">Loading products…</div>`;
   const categorySelect = app.querySelector('[name="category"]');
-  let categories = [];
   try {
-    categories = await api("/categories");
+    const [categories, catalog] = await Promise.all([
+      api("/categories"),
+      api("/products?size=100&sort=price_desc"),
+    ]);
     if (id !== renderId) return;
+    const featured = catalog.find((product) => /\bwatch\b/i.test(product.name));
+    if (featured) {
+      app.querySelector("#featured-art").innerHTML = `<img class="featured-photo" src="${productImage(featured)}" alt="${escapeHtml(featured.name)}">
+        <div class="featured-shade"></div><span class="featured-badge">THE EDITOR'S PICK</span>
+        <a class="featured-product" href="#/products/${encodeURIComponent(featured.pid)}">
+          <span><small>THE TIMELESS ONE</small><strong>${escapeHtml(featured.name)}</strong></span>
+          <span class="featured-price">${money(featured.price)} <i aria-hidden="true">↗</i></span>
+        </a>`;
+    }
     categorySelect.insertAdjacentHTML("beforeend", categories.map((category) =>
       `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join(""));
   } catch (error) {
@@ -120,6 +215,7 @@ async function showShop(id) {
   const load = async () => {
     clearTimeout(timer);
     timer = setTimeout(async () => {
+      if (id !== renderId) return;
       const requestId = ++searchRequest;
       const params = new URLSearchParams({ size: "100", sort: app.querySelector('[name="sort"]').value });
       const query = app.querySelector('[name="q"]').value.trim();
@@ -149,13 +245,20 @@ async function showProduct(id, productId) {
   try {
     const product = await api(`/products/${encodeURIComponent(productId)}`);
     if (id !== renderId) return;
-    app.innerHTML = `<a class="muted small" href="#/shop">← Products</a>
-      <section class="layout" style="margin-top:1rem">
-        <div class="panel empty"><span class="category">${escapeHtml(product.category)}</span><h2>${escapeHtml(product.name)}</h2><p class="muted">${escapeHtml(product.description || "")}</p></div>
-        <div class="panel"><h1>${escapeHtml(product.name)}</h1><p>${money(product.price)}</p>
-          <p class="muted">${Number(product.stock)} in stock</p>
+    app.innerHTML = `<a class="back-link" href="#/shop"><span aria-hidden="true">←</span> Back to collection</a>
+      <section class="layout product-detail-layout">
+        <div class="panel detail-art"><img class="detail-photo" src="${productImage(product)}" alt="${escapeHtml(product.name)}">
+          <span class="art-label">${escapeHtml(product.category)}</span>
+          <span class="art-index">NEXORA · NO. ${String(product.pid).padStart(2, "0")}</span>
+        </div>
+        <div class="panel product-detail"><p class="eyebrow">A NEXORA OBJECT</p>
+          <span class="category">${escapeHtml(product.category)}</span><h1>${escapeHtml(product.name)}</h1>
+          <p class="detail-description">${escapeHtml(product.description || "")}</p>
+          <p class="detail-price">${money(product.price)}</p>
+          <p class="detail-stock">${Number(product.stock) > 0 ? `${Number(product.stock)} available` : "Currently unavailable"}</p>
           <label class="label">Quantity<input class="field" name="quantity" type="number" min="1" max="${Number(product.stock)}" value="1"></label>
           <button class="button" data-action="add-product" data-pid="${Number(product.pid)}" ${product.stock ? "" : "disabled"}>Add to cart</button>
+          <p class="detail-note">Secure checkout <span>·</span> Cash on delivery</p>
         </div></section><div id="product-error"></div>`;
     app.dataset.product = JSON.stringify(product);
   } catch (error) {
@@ -166,16 +269,27 @@ async function showProduct(id, productId) {
 async function showLogin(id, query) {
   if (token()) { navigate("/shop"); return; }
   const registered = query.get("registered") === "1";
-  app.innerHTML = `<section class="panel" style="max-width:30rem;margin:auto">
-    <h1 id="auth-title">Sign in</h1><p class="muted">Sign in to manage your cart and orders.</p>
-    <div id="auth-notice">${registered ? message("Account created successfully. Please sign in.", "success") : ""}</div>
-    <form class="form" id="auth-form">
-      <label class="label" id="name-field" hidden>Full name<input class="field" name="name" maxlength="150"></label>
-      <label class="label">Email address<input class="field" type="email" name="email" autocomplete="email" required></label>
-      <label class="label">Password<input class="field" type="password" name="password" minlength="6" required></label>
-      <div id="auth-error"></div><button class="button" id="auth-submit">Sign in</button>
-      <button class="button secondary" type="button" data-action="toggle-auth">New to NEXORA? Create an account</button>
-    </form></section>`;
+  app.innerHTML = `<section class="auth-shell">
+    <div class="auth-editorial"><p class="eyebrow"><span class="eyebrow-dot"></span> THE NEXORA EXPERIENCE</p>
+      <h1>Make room for<br><em>the remarkable.</em></h1>
+      <p class="muted">A considered collection of objects for a life well lived.</p>
+      <div class="auth-seal" aria-hidden="true"><span>NX</span><small>EST. 2026</small></div>
+      <p class="auth-footnote">THOUGHTFULLY SELECTED <i>·</i> DISTINCTIVELY YOURS</p>
+    </div>
+    <div class="panel auth-panel"><p class="eyebrow">MEMBER ACCESS</p><h2 id="auth-title">Welcome back</h2>
+      <p class="muted auth-subtitle">Sign in to continue to your account.</p>
+      <div id="auth-notice">${registered ? message("Account created successfully. Please sign in.", "success") : ""}</div>
+      <form class="form" id="auth-form">
+        <label class="label" id="name-field" hidden>Full name<input class="field" name="name" maxlength="150" autocomplete="name"></label>
+        <label class="label">Email address<input class="field" type="email" name="email" autocomplete="email" placeholder="you@example.com" required></label>
+        <label class="label">Password<input class="field" type="password" name="password" minlength="6" autocomplete="current-password" placeholder="Enter your password" required></label>
+        <div id="auth-error"></div><button class="button" id="auth-submit">Sign in <span aria-hidden="true">↗</span></button>
+        <div class="auth-divider"><span>NEW TO NEXORA</span></div>
+        <button class="button secondary auth-toggle" type="button" data-action="toggle-auth">Create an account</button>
+      </form>
+      <p class="auth-privacy">Your account details are securely protected.</p>
+    </div>
+  </section>`;
   app.dataset.next = safeNext(query.get("next"));
 }
 
@@ -185,6 +299,8 @@ async function showCart(id) {
     const result = await api("/cart");
     if (id !== renderId) return;
     cart = result.items;
+    cartNavigationError = false;
+    updateNavigation(route().path);
     const subtotal = cart.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
     const shipping = subtotal > 0 && subtotal < 100 ? 7.95 : 0;
     app.innerHTML = `<h1>Shopping cart</h1>${cart.length ? `<div class="layout">
@@ -199,7 +315,11 @@ async function showCart(id) {
       `<div class="panel empty"><p>Your cart is empty.</p><a class="button" href="#/shop">Browse products</a></div>`}
       <div id="cart-error"></div>`;
   } catch (error) {
-    if (id === renderId) app.innerHTML = `<h1>Shopping cart</h1>${message(errorMessage(error))}`;
+    if (id === renderId) {
+      cartNavigationError = true;
+      updateNavigation(route().path);
+      app.innerHTML = `<h1>Shopping cart</h1>${message(errorMessage(error))}`;
+    }
   }
 }
 
@@ -209,6 +329,8 @@ async function showCheckout(id) {
     const result = await api("/cart");
     if (id !== renderId) return;
     cart = result.items;
+    cartNavigationError = false;
+    updateNavigation(route().path);
     if (!cart.length) {
       app.innerHTML = '<div class="panel empty"><p>Your cart is empty.</p><a class="button" href="#/shop">Browse products</a></div>';
       return;
@@ -230,7 +352,11 @@ async function showCheckout(id) {
       <aside class="panel"><h2>Order summary</h2><div class="list">${cart.map(({ product, quantity }) => `<p class="row small">${quantity} × ${escapeHtml(product.name)} <span>${money(product.price * quantity)}</span></p>`).join("")}</div>
       <p class="row"><strong>Total</strong><strong>${money(total)}</strong></p></aside></div>`;
   } catch (error) {
-    if (id === renderId) app.innerHTML = `<h1>Checkout</h1>${message(errorMessage(error))}`;
+    if (id === renderId) {
+      cartNavigationError = true;
+      updateNavigation(route().path);
+      app.innerHTML = `<h1>Checkout</h1>${message(errorMessage(error))}`;
+    }
   }
 }
 
@@ -302,7 +428,10 @@ async function showAdmin(id) {
 async function render() {
   const id = ++renderId;
   const current = route();
-  updateNavigation();
+  updateNavigation(current.path);
+  if (token() && !["/cart", "/checkout"].includes(current.path)) {
+    void refreshCartNavigation(current.path, id);
+  }
   if (["/cart", "/checkout", "/account", "/orders", "/admin"].includes(current.path) && !token()) {
     navigate(`/login?next=${encodeURIComponent(current.path)}`);
     return;
@@ -435,6 +564,8 @@ document.addEventListener("submit", async (event) => {
       });
       await api("/cart", { method: "PUT", body: JSON.stringify({ items: [] }) });
       cart = [];
+      cartNavigationError = false;
+      updateNavigation(route().path);
       app.innerHTML = '<section class="panel empty"><h1>Order placed.</h1><p class="muted">Your order is confirmed. Payment is due on delivery.</p><a class="button" href="#/orders">View your orders</a></section>';
     } catch (error) { app.querySelector("#checkout-error").innerHTML = message(errorMessage(error)); }
     finally { if (submitButton.isConnected) submitButton.disabled = false; }
