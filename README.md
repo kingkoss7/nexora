@@ -1,6 +1,6 @@
 # NEXORA E-Commerce
 
-A database-focused e-commerce mini-project using **Python NiceGUI** for the storefront and the existing **FastAPI + SQLAlchemy + PostgreSQL + Alembic** backend. The previous HTML/CSS/JavaScript frontend remains in `frontend/` as a backup; the new Python UI is in `frontend-python/`.
+A database-focused e-commerce mini-project using an **HTML, CSS, and JavaScript** storefront with an existing **FastAPI + SQLAlchemy + PostgreSQL + Alembic** backend.
 
 ## Requirements
 
@@ -29,24 +29,19 @@ python -m venv venv
 
 The API runs at `http://127.0.0.1:8000`. Use your own admin email when running the bootstrap command. To add demo products, set `SEED_DEMO_DATA=true` in `backend/.env` before starting the API.
 
-## 2. Start the Python NiceGUI frontend
+## 2. Start the HTML storefront
 
 Open terminal 2 at the repository root:
 
 ```powershell
-python -m venv .venv-nicegui
-.\.venv-nicegui\Scripts\python.exe -m pip install -r frontend-python/requirements.txt
-$env:NEXORA_API_URL = "http://127.0.0.1:8000"
-.\.venv-nicegui\Scripts\python.exe frontend-python/main.py
+python -m http.server 3000 --directory frontend
 ```
 
-Open **http://127.0.0.1:3000** in your browser. NiceGUI talks to FastAPI server-side, so the browser UI does not need CORS configuration. If the API runs at another address, change `NEXORA_API_URL`.
+Open **http://localhost:3000** in your browser. The storefront sends API requests to `http://localhost:8000`.
 
-More detailed setup notes: [frontend-python/README.md](frontend-python/README.md).
+## Storefront and backend features
 
-## Features in the Python UI
-
-- Royal Purple responsive storefront, product detail pages, search, category filtering and price sorting.
+- Product browsing, product details, search, category filtering and price sorting.
 - Registration and login using the existing bearer-token authentication.
 - Database-backed cart with quantity changes and stock checks.
 - Checkout with delivery details and cash-on-delivery payment.
@@ -61,7 +56,7 @@ The backend remains the source of truth for users, inventory, orders, totals and
 
 1. Start PostgreSQL, apply Alembic migrations and start FastAPI.
 2. Bootstrap your administrator account using the command above.
-3. Start NiceGUI in a second terminal and open http://127.0.0.1:3000.
+3. Serve the HTML storefront in a second terminal and open http://localhost:3000.
 4. Browse products, test search/filter/sorting and open a product detail page.
 5. Register a customer, sign in, add items to the cart and change quantities.
 6. Add a saved address, place a COD order and verify it appears in order history.
@@ -79,4 +74,4 @@ Run existing backend tests from the `backend/` directory:
 .\venv\Scripts\python.exe -m pytest
 ```
 
-The original static frontend is preserved in `frontend/` if you need to compare or roll back. No database schema or migration files were changed by this UI addition.
+The storefront source is in `frontend/`. No database schema or migration files were changed.

@@ -36,59 +36,15 @@ jobs:
           cache: pip
           cache-dependency-path: |
             backend/requirements.txt
-            frontend-python/requirements.txt
-      - name: Install backend and frontend dependencies
+      - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r backend/requirements.txt
-          python -m pip install -r frontend-python/requirements.txt
       - name: Check Python syntax
-        run: python -m compileall -q backend/app backend/tests frontend-python
+        run: python -m compileall -q backend/app backend/tests
       - name: Validate Alembic migrations on a clean PostgreSQL database
         working-directory: backend
         run: python -m alembic upgrade head
-      - name: Smoke test NiceGUI storefront startup
-        run: |
-          (cd backend && nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/nexora-api.log 2>&1 &)
-          python - <<'PY'
-          import time
-          import urllib.error
-          import urllib.request
-
-          for attempt in range(30):
-              try:
-                  with urllib.request.urlopen("http://127.0.0.1:8000/openapi.json", timeout=2) as response:
-                      if response.status == 200:
-                          break
-              except (urllib.error.URLError, TimeoutError, OSError):
-                  time.sleep(1)
-          else:
-              print(open("/tmp/nexora-api.log", encoding="utf-8").read())
-              raise SystemExit("FastAPI did not start successfully.")
-          PY
-          NEXORA_API_URL=http://127.0.0.1:8000 PORT=3000 nohup python frontend-python/main.py > /tmp/nexora-ui.log 2>&1 &
-          python - <<'PY'
-          import time
-          import urllib.error
-          import urllib.request
-
-          for attempt in range(30):
-              try:
-                  with urllib.request.urlopen("http://127.0.0.1:3000/", timeout=5) as response:
-                      if response.status == 200:
-                          print("NiceGUI storefront returned HTTP 200.")
-                          break
-              except (urllib.error.URLError, TimeoutError, OSError):
-                  time.sleep(1)
-          else:
-              for path in ("/tmp/nexora-api.log", "/tmp/nexora-ui.log"):
-                  print(f"--- {path} ---")
-                  try:
-                      print(open(path, encoding="utf-8").read())
-                  except OSError:
-                      pass
-              raise SystemExit("NiceGUI storefront did not start successfully.")
-          PY
       - name: Run PostgreSQL-backed API tests
         working-directory: backend
         run: python -m pytest -q
