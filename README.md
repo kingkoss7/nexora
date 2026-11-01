@@ -41,7 +41,7 @@ Open **http://localhost:3000** in your browser. The storefront sends API request
 
 ## Storefront and backend features
 
-- Product browsing, product details, search, category filtering and price sorting.
+- Modern light storefront with warm neutral surfaces and a restrained teal accent, product detail pages, search, category filtering and price sorting.
 - Registration and login using the existing bearer-token authentication.
 - Database-backed cart with quantity changes and stock checks.
 - Checkout with delivery details and cash-on-delivery payment.
